@@ -1,0 +1,59 @@
+// main.scss 全域樣式，已放在app/layout.js裡
+
+@use './variables' as *;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+main {
+  margin-top: 60px;
+}
+
+body {
+  background-color: $color-background;
+  color: $color-primary;
+  font-family: $font-family-default;
+}
+
+h1,
+h2,
+h3 {
+  margin-bottom: $margin-bottom-title;
+  font-weight: $font-weight-title;
+  letter-spacing: $letter-spacing;
+}
+
+h1 {
+  font-size: $font-size-h1;
+}
+h2 {
+  font-size: $font-size-h2;
+}
+h3 {
+  font-size: $font-size-h3;
+}
+
+p {
+  font-size: $font-size-p;
+  margin-bottom: $margin-bottom-p;
+  letter-spacing: $letter-spacing;
+}
+
+a {
+  letter-spacing: $letter-spacing;
+  text-decoration: none;
+  color: inherit; // 保持與周圍文字一致
+}
+button {
+  border: none !important;
+  background: none;
+}
+
+// 確保 Modal 開啟時頁面不會偏移
+.modal-open {
+  overflow: auto !important;
+  padding-right: 0 !important;
+}

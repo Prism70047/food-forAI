@@ -1,0 +1,913 @@
+.container {
+  background-color: #fff;
+  overflow: hidden;
+  width: 100%;
+}
+
+.content {
+  background-color: #fffaf0;
+  display: flex;
+  width: 100%;
+  padding-bottom: 1px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@media (max-width: 991px) {
+  .content {
+    max-width: 100%;
+  }
+}
+
+.mapContainer {
+  height: 0;
+  overflow: hidden;
+  transition: height 0.3s ease-in-out;
+}
+
+.mapContainer.active {
+  height: 400px;
+  margin-top: 1rem;
+}
+
+.noMapData {
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.breadcrumb {
+  width: 1277px;
+  max-width: 100%;
+}
+
+.breadcrumbNav {
+  display: flex;
+  padding: 19px 20px 21px;
+  align-items: flex-start;
+  gap: 8px;
+  font-family:
+    Roboto,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+  white-space: nowrap;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 991px) {
+  .breadcrumbNav {
+    max-width: 100%;
+    padding-right: 20px;
+    white-space: initial;
+  }
+}
+
+.mainContent {
+  width: 100%;
+  max-width: 1277px;
+  padding: 0 20px 40px;
+}
+
+@media (max-width: 991px) {
+  .mainContent {
+    max-width: 100%;
+  }
+}
+
+.restaurantTitle {
+  color: #423c3a;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+}
+
+@media (max-width: 991px) {
+  .restaurantTitle {
+    max-width: 100%;
+    font-size: 40px;
+  }
+}
+
+.actionButtons {
+  display: flex;
+  margin-top: 42px;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 14px;
+  font-family:
+    Roboto,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  color: #df6c2d;
+  font-weight: 400;
+  white-space: nowrap;
+  text-align: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 991px) {
+  .actionButtons {
+    max-width: 100%;
+    padding-left: 20px;
+    margin-top: 40px;
+    white-space: initial;
+  }
+}
+
+.actionButton {
+  border-radius: 100px;
+  border: 1px solid #df6c2d;
+  display: flex;
+  padding: 9px 17px 11px;
+  /* 修改以下屬性 */
+  align-items: center; /* 改為 center，使圖示和文字垂直置中對齊 */
+  gap: 8px;
+  justify-content: center; /* 改為 center，使內容水平置中 */
+  cursor: pointer;
+}
+
+@media (max-width: 991px) {
+  .actionButton {
+    white-space: initial;
+  }
+}
+
+.actionIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.authorInfo {
+  display: flex;
+  margin-top: 42px;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  white-space: nowrap;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 991px) {
+  .authorInfo {
+    max-width: 100%;
+    margin-top: 40px;
+    white-space: initial;
+  }
+}
+
+.recommendBadge {
+  border-radius: 4px;
+  background-color: #ff5a00;
+  display: flex;
+  padding: 4px 12px;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  letter-spacing: 0.48px;
+  justify-content: flex-start;
+}
+
+@media (max-width: 991px) {
+  .recommendBadge {
+    white-space: initial;
+  }
+}
+
+.badgeIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 16px;
+  align-self: stretch;
+  margin: auto 0;
+  flex-shrink: 0;
+}
+
+.badgeText {
+  align-self: stretch;
+  margin: auto 0;
+}
+
+.authorAvatar {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 32px;
+  border-radius: 50%;
+  align-self: stretch;
+  margin: auto 0;
+  flex-shrink: 0;
+}
+
+.authorLabel {
+  color: #666;
+  letter-spacing: 0.48px;
+  align-self: stretch;
+  margin: auto 0;
+}
+
+.publishDate {
+  color: #666;
+  font-family:
+    Roboto,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  align-self: stretch;
+  margin: auto 0;
+}
+
+.heroImage {
+  border-radius: 15px;
+  display: flex;
+  margin-top: 20px;
+  width: 100%;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  align-items: flex-end;
+  overflow: hidden;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .heroImage {
+    margin-top: 20px;
+  }
+}
+
+.heroImg {
+  border-radius: 20px;
+  aspect-ratio: 2;
+  object-fit: contain;
+  object-position: center;
+  width: 1232px;
+  border-radius: 8px;
+  min-width: 240px;
+}
+
+.restaurantDescription {
+  margin-top: 42px;
+  width: 100%;
+  padding-top: 5px;
+}
+
+@media (max-width: 991px) {
+  .restaurantDescription {
+    max-width: 100%;
+    margin-top: 40px;
+  }
+}
+
+.descriptionText {
+  color: #423c3a;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.48px;
+}
+
+@media (max-width: 991px) {
+  .descriptionText {
+    max-width: 100%;
+  }
+}
+
+.sectionTitle {
+  color: #423c3a;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 29px;
+}
+
+.quoteBox {
+  border-radius: 8px;
+  background-color: #fff;
+  display: flex;
+  margin-top: 29px;
+  width: 100%;
+  padding: 23px 24px 24px;
+  flex-direction: column;
+  align-items: stretch;
+  font-weight: 400;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .quoteBox {
+    max-width: 100%;
+    padding: 23px 20px 24px;
+  }
+}
+
+.quoteText {
+  color: #df6c2d;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.6px;
+}
+
+@media (max-width: 991px) {
+  .quoteText {
+    max-width: 100%;
+  }
+}
+
+.quoteAuthor {
+  color: #666;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.48px;
+  margin-top: 13px;
+}
+
+.dishContainer {
+  width: 75%;
+  margin: 29px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (max-width: 991px) {
+  .dishContainer {
+    width: 90%;
+  }
+
+  .dishImage {
+    min-height: 200px;
+  }
+}
+
+.dishImage {
+  aspect-ratio: 16/9; /* 使用更常見的 16:9 比例 */
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+  max-height: 600px; /* 設定最大高度 */
+  min-height: 300px; /* 設定最小高度 */
+  border-radius: 8px;
+  margin: 29px auto 0; /* 修改這行，使用 margin auto 實現水平置中 */
+  display: block; /* 加入這行確保圖片作為區塊元素 */
+}
+
+.dishTitle {
+  width: 100%;
+  color: #423c3a;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 29px;
+  text-align: left;
+}
+
+@media (max-width: 991px) {
+  .dishTitle {
+    max-width: 100%;
+  }
+}
+
+.dishDescription {
+  width: 100%;
+  color: #666;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.6px;
+  margin-top: 29px;
+  text-align: left;
+}
+
+@media (max-width: 991px) {
+  .dishDescription {
+    max-width: 100%;
+  }
+}
+
+.recommendationBox {
+  border-radius: 8px;
+  background-color: #fff5ee;
+  display: flex;
+  margin-top: 29px;
+  width: 100%;
+  padding: 24px;
+  flex-direction: column;
+  align-items: stretch;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  justify-content: center;
+  /* 移除 white-space: nowrap; 允許文字換行 */
+}
+
+@media (max-width: 991px) {
+  .recommendationBox {
+    max-width: 100%;
+    padding: 24px 20px;
+    white-space: initial;
+  }
+}
+
+.recommendationTitle {
+  color: #df6c2d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.recommendationText {
+  color: #666;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.48px;
+  margin-top: 16px;
+  /* 添加以下屬性 */
+  white-space: normal; /* 允許文字換行 */
+  word-wrap: break-word; /* 允許長單字換行 */
+  line-height: 1.6; /* 設定行高 */
+  max-width: 100%; /* 確保不會超出父元素 */
+}
+
+@media (max-width: 991px) {
+  .recommendationText {
+    max-width: 100%;
+  }
+}
+
+.infoSection {
+  display: flex;
+  margin-top: 42px;
+  width: 100%;
+  align-items: stretch; /* 確保子元素會延伸到相同高度 */
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 991px) {
+  .infoSection {
+    max-width: 100%;
+    margin-top: 40px;
+  }
+}
+
+.infoCard {
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.12);
+  display: flex; /* 新增 */
+  flex-direction: column; /* 新增 */
+  /* align-self: flex-start; */
+  min-width: 240px;
+  padding: 24px;
+  font-weight: 400;
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  gap: 16px;
+}
+
+@media (max-width: 991px) {
+  .infoCard {
+    max-width: 100%;
+    padding: 24px 20px;
+  }
+}
+
+.infoCardTitle {
+  color: #000;
+  font-size: 20px;
+  font-family:
+    Roboto,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-weight: 700;
+}
+
+.infoCardContent {
+  display: flex;
+  /* margin-top: 17px; */
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  /* flex: 1; 新增，讓內容區域可以填充剩餘空間 */
+}
+
+@media (max-width: 991px) {
+  .infoCardContent {
+    max-width: 100%;
+  }
+}
+
+.infoItem {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.infoItem svg {
+  width: 24px;
+  height: 24px;
+  color: #423c3a; /* 設定圖標顏色 */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .infoItem {
+    max-width: 100%;
+    padding-right: 20px;
+  }
+}
+
+.infoIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 24px;
+  flex-shrink: 0;
+}
+
+.infoTextGroup {
+  /* display: flex; */
+  padding: 3px 0;
+  flex-direction: row;
+  align-items: center;
+  width: auto; /* 改為 auto，讓寬度自適應 */
+  min-width: 187px; /* 設定最小寬度 */
+  flex: 1; /* 添加 flex: 1 讓元素可以填充剩餘空間 */
+}
+
+.infoText {
+  color: #423c3a;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.48px;
+  z-index: 10;
+  white-space: normal; /* 允許文字自然換行 */
+  word-wrap: break-word; /* 允許長單字換行 */
+  max-width: 100%; /* 確保不會超出父元素 */
+}
+
+@media (max-width: 991px) {
+  .infoText {
+    margin-right: -6px;
+  }
+}
+
+.infoLink {
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.infoLink:hover {
+  color: #004499;
+}
+
+.infoItemSimple {
+  display: flex;
+  /* margin-top: 16px; */
+  width: 100%;
+  align-items: flex-start; /* 改為 flex-start，避免內容過長時的對齊問題 */
+  gap: 12px;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  color: #423c3a;
+  white-space: nowrap;
+  letter-spacing: 0.48px;
+  justify-content: flex-start;
+  flex-wrap: nowrap; /* 改為 nowrap，避免內容換行 */
+  padding-right: 20px; /* 添加右邊距 */
+}
+
+.infoItemSimple svg {
+  width: 24px;
+  height: 24px;
+  color: #423c3a; /* 設定圖標顏色 */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .infoItemSimple {
+    max-width: 100%;
+    padding-right: 20px;
+    white-space: initial;
+  }
+}
+
+.infoItemHours {
+  display: flex;
+  /* margin-top: 16px; */
+  width: 100%;
+  padding-right: 40px;
+  padding-bottom: 2px;
+  align-items: center;
+  gap: 12px;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  color: #423c3a;
+  letter-spacing: 0.48px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.infoItemHours svg {
+  width: 24px;
+  height: 24px;
+  color: #423c3a; /* 設定圖標顏色 */
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .infoItemHours {
+    max-width: 100%;
+    padding-right: 20px;
+  }
+}
+
+.relatedItem a,
+.relatedItemWide a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.infoIconSmall {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 15px;
+  flex-shrink: 0;
+}
+
+.infoTextFull {
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
+}
+
+@media (max-width: 991px) {
+  .infoTextFull {
+    max-width: 100%;
+  }
+}
+
+.infoSubtitle {
+  color: #423c3a;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.48px;
+  /* margin-top: 17px; */
+}
+
+.infoList {
+  display: flex;
+  /* margin-top: 17px; */
+  width: 100%;
+  padding-right: 104px;
+  /* 下面這一行只是為了讓3個li的字可以對上上面的字，高機率套了main之後還要改 */
+  padding-left: 19px;
+  flex-direction: column;
+  align-items: stretch;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  color: #666;
+  letter-spacing: 0.48px;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .infoList {
+    max-width: 100%;
+    padding-right: 20px;
+  }
+}
+
+.infoListItem {
+  margin-top: 8px;
+}
+
+.infoListItem:first-child {
+  margin-top: 0;
+}
+
+.relatedRestaurants {
+  display: flex;
+  /* margin-top: 16px; */
+  width: 347px;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  font-weight: 400;
+  justify-content: center;
+  min-height: 200px; /* 可以根據需要調整這個值 */
+}
+
+@media (max-width: 991px) {
+  .relatedRestaurants {
+    white-space: initial;
+  }
+}
+
+.relatedItem {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 991px) {
+  .relatedItem {
+    padding-right: 20px;
+    white-space: initial;
+  }
+}
+
+.relatedImage {
+  aspect-ratio: 1.5;
+  object-fit: contain;
+  object-position: center;
+  width: 120px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.relatedInfo,
+.relatedInfoWide {
+  padding: 16px; /* 增加內部間距 */
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* 增加元素之間的間距 */
+}
+
+@media (max-width: 991px) {
+  .relatedInfo {
+    white-space: initial;
+  }
+}
+
+.relatedName,
+.relatedNameWide {
+  color: #423c3a;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 13px; /* 增加與圖片的間距 */
+  line-height: 1.4;
+}
+
+@media (max-width: 991px) {
+  .relatedName {
+    margin-right: -2px;
+  }
+}
+
+.relatedLocation {
+  color: #666;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.42px;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+.relatedItemWide {
+  display: flex;
+  margin-top: 16px;
+  padding-right: 70px;
+  align-items: flex-start;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+@media (max-width: 991px) {
+  .relatedItemWide {
+    padding-right: 20px;
+    white-space: initial;
+  }
+}
+
+@media (max-width: 991px) {
+  .relatedInfoWide {
+    white-space: initial;
+  }
+}
+
+@media (max-width: 991px) {
+  .relatedNameWide {
+    margin-right: -3px;
+  }
+}

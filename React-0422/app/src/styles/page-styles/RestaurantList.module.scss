@@ -1,0 +1,455 @@
+@use '../variables' as *;
+@use '../mixins.scss' as *;
+
+.pageContainer {
+  padding-top: 80px;
+  align-items: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  background-color: #fffaf0;
+}
+
+.heroSection {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  width: 1280px;
+  max-width: 1280px;
+  // padding-left: 170px;
+  // padding-right: 170px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  align-items: stretch; /* 確保兩側高度一致 */
+  gap: 40px 60px;
+  overflow: hidden;
+  justify-content: center;
+}
+
+.heroContentWrapper {
+  display: flex;
+  flex-direction: column;
+  /* 要跟圖片對齊或跟圖片水平致中 */
+  justify-content: end;
+  /* align-items: self-end; */
+  gap: 30px;
+  flex: 1;
+  max-width: 50%;
+}
+
+@media (max-width: 991px) {
+  .heroSection {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (max-width: 991px) {
+  .heroContent {
+    max-width: 100%;
+  }
+}
+
+/* .heroTitle {
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+} */
+
+@media (max-width: 991px) {
+  .heroTitle {
+    max-width: 100%;
+    font-size: 40px;
+  }
+}
+
+.heroDescription {
+  font-size: $font-size-p1;
+
+  letter-spacing: 0.6px;
+  margin-top: 20px;
+}
+
+@media (max-width: 991px) {
+  .heroDescription {
+    max-width: 100%;
+  }
+}
+
+.searchBar {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.searchButton {
+  padding: 10px 20px;
+  background-color: #f97316;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.searchButton:hover {
+  background-color: #ea580c;
+}
+
+.noResults {
+  width: 100%;
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 18px;
+}
+
+.heroImageContainer {
+  flex: 1;
+  max-width: 45%;
+  height: 400px; /* 設定固定高度 */
+  overflow: hidden;
+  border-radius: 8px; /* 可選：添加圓角 */
+}
+
+@media (max-width: 991px) {
+  .heroImageContainer {
+    max-width: 100%;
+  }
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 991px) {
+  .heroImage {
+    max-width: 100%;
+  }
+}
+
+.decorativeImage {
+  object-fit: contain;
+  object-position: center;
+  width: 1280px;
+  align-self: start;
+  position: absolute;
+  z-index: 0;
+  min-width: 240px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  height: 0px;
+}
+
+@media (max-width: 991px) {
+  .decorativeImage {
+    max-width: 100%;
+  }
+}
+
+.restaurantListSection {
+  display: flex;
+  padding-left: 100px;
+  padding-right: 100px;
+  // padding-top: 60px;
+  padding-bottom: 60px;
+  flex-direction: column;
+  overflow: hidden;
+  align-items: stretch;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .restaurantListSection {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+.sectionTitle {
+  width: 100%;
+  gap: 24px;
+  font-size: 48px;
+  color: #000;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 991px) {
+  .sectionTitle {
+    max-width: 100%;
+    font-size: 40px;
+  }
+}
+
+.restaurantList {
+  display: flex;
+  /* margin-top: 60px; */
+  margin: 60px auto;
+  width: 100%;
+
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  justify-content: center;
+}
+
+@media (max-width: 991px) {
+  .restaurantList {
+    max-width: 100%;
+    margin-top: 40px;
+    white-space: initial;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.restaurantCard {
+  background-color: rgba(236, 236, 236, 1);
+  display: flex;
+  height: 360px; /* 固定高度 */
+  width: 75%;
+  border-radius: 30px;
+  overflow: hidden;
+  align-items: stretch;
+  overflow: hidden;
+  justify-content: start;
+  cursor: pointer;
+  flex-wrap: nowrap; /* 防止內容換行 */
+}
+
+.restaurantCard:not(:first-child) {
+  margin-top: 40px;
+}
+
+@media (max-width: 991px) {
+  .restaurantCard {
+    max-width: 100%;
+    white-space: initial;
+  }
+}
+
+.restaurantImage {
+  aspect-ratio: 1.29;
+  object-fit: cover; /* 改為 cover 確保圖片填滿容器 */
+  height: 100%; /* 設定高度為 100% */
+  width: 40%; /* 固定寬度比例 */
+  min-width: 240px;
+  flex: none; /* 防止 flex 影響大小 */
+}
+
+@media (max-width: 991px) {
+  .restaurantImage {
+    max-width: 100%;
+  }
+}
+
+.cardContent {
+  display: flex;
+  width: 60%; /* 固定寬度比例 */
+  padding: 40px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  flex: none; /* 防止 flex 影響大小 */
+  overflow: hidden;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+@media (max-width: 991px) {
+  .cardContent {
+    max-width: 100%;
+    padding: 50px 20px;
+    white-space: initial;
+  }
+}
+
+.cardBadge {
+  text-shadow: 2px 3px 8px rgba(0, 0, 0, 0.25);
+  width: 60px;
+  font-size: 24px;
+  color: #fff;
+  font-weight: 700;
+}
+
+@media (max-width: 991px) {
+  .cardBadge {
+    white-space: initial;
+    word-wrap: normal;
+  }
+}
+
+.cardTextContainer {
+  margin-top: 20px;
+  width: 100%;
+}
+
+@media (max-width: 991px) {
+  .cardTextContainer {
+    white-space: initial;
+  }
+}
+
+.cardTitle {
+  color: #423c3a;
+  /* leading-trim: both;
+  text-edge: cap; */
+  word-wrap: break-word; /* 修改為 break-word */
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 15px; /* 添加底部間距 */
+  line-height: 1.2; /* 控制行高 */
+  /* 移除這些可能導致標題隱藏的屬性 */
+  /* overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; */
+  /* 添加這些屬性 */
+  display: block;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.cardDescription {
+  color: #7a7a7a;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.48px;
+  margin-top: 25px;
+  word-wrap: break-word;
+  width: auto;
+  align-self: stretch;
+  /* 添加以下屬性 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 4; /* 最多顯示三行 */
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  line-height: 1.5; /* 控制行高 */
+  max-height: 120px; /* 控制最大高度 */
+}
+
+.pagination {
+  z-index: 0;
+  display: flex;
+  padding: 20px 0;
+  align-items: center;
+  gap: 25px;
+  font-family:
+    'Noto Sans TC',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 20px;
+  color: #faf8f9;
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: center;
+  justify-content: start;
+  border-radius: 100%;
+}
+
+@media (max-width: 991px) {
+  .pagination {
+    max-width: 100%;
+    white-space: initial;
+  }
+}
+
+.paginationArrow {
+  aspect-ratio: 1; /* 改為 1，確保是正方形 */
+  object-fit: contain;
+  object-position: center;
+  width: 80px;
+  height: 80px; /* 添加固定高度 */
+  stroke-width: 5px;
+  stroke: #df6c2d;
+  align-self: stretch;
+  margin: auto 0;
+  flex-shrink: 0;
+  border-radius: 50%; /* 使用 50% 製造圓形效果 */
+  padding: 12px; /* 添加內邊距讓圖示不會太貼近邊緣 */
+  cursor: pointer; /* 添加指標樣式 */
+  transition: background-color 0.3s ease; /* 添加過渡效果 */
+}
+
+.pageNumberContainer {
+  align-self: stretch;
+  display: flex;
+  margin: auto 0;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  width: 50px;
+}
+
+@media (max-width: 991px) {
+  .pageNumberContainer {
+    white-space: initial;
+  }
+}
+
+.pageNumber {
+  color: #faf8f9;
+  leading-trim: both;
+  text-edge: cap;
+  border-radius: 100px;
+  align-self: stretch;
+  margin: auto 0;
+  width: 50px;
+  padding: 0 5px;
+  overflow: hidden;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eeb392;
+}
+
+.pageNumberActive {
+  background-color: #ff5a00;
+  color: #fff;
+  box-shadow: 0px 0px 0px 10px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 991px) {
+  .pageNumber {
+    white-space: initial;
+  }
+}

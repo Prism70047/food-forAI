@@ -1,0 +1,724 @@
+@use '../variables' as *;
+@use '../mixins.scss' as *;
+
+.container {
+  min-width: 320px;
+  align-items: stretch;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+}
+
+/* 版頭 */
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  margin-bottom: 50px;
+
+  div:nth-of-type(1) {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: center;
+    z-index: 2;
+    text-shadow: $title-shadow;
+    p {
+      font-size: $font-size-p1;
+      padding-top: 10px;
+    }
+  }
+  img {
+    background-color: $color-background-error;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 55%;
+    z-index: 1;
+  }
+}
+
+// 材料選單 Start
+.ingredientsSection {
+  align-self: center;
+  display: flex;
+  width: 1280px;
+  gap: 30px;
+  margin-bottom: 50px;
+}
+
+.ingredientCard {
+  position: relative;
+  flex: 1;
+}
+
+.cardBody {
+  border-radius: 30px;
+  background-color: #fff;
+  padding: 20px 40px;
+  box-shadow: $card-shadow;
+  h2 {
+    margin-bottom: 20px;
+  }
+  .cardList {
+    height: 115px;
+    font-size: $font-size-p1;
+    color: $color-primary;
+    letter-spacing: 0.6px;
+    // padding: 45px 40px;
+    column-count: 2; /* 設定欄數為 4 */
+    column-fill: auto; /* 讓內容自動填充欄位 */
+    column-gap: 0;
+    div {
+      font-size: $font-size-p1;
+      display: flex;
+      align-items: center; /* 讓文字和 icon 垂直居中對齊 */
+      margin-bottom: 5px;
+      .cartIconBefore {
+        background-color: $color-accent;
+        color: #fff;
+        border-radius: 9rem;
+        width: 25px;
+        height: 25px;
+        display: inline-flex; /* 讓 icon 在圓圈內水平垂直居中 */
+        align-items: center;
+        justify-content: center;
+        margin-left: 10px;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: $color-special;
+        }
+
+        .cartIconAdd {
+          font-size: 18px; /* 設定 icon 的大小 */
+        }
+      }
+      .cartIconAfter {
+        background-color: $color-primary;
+        color: #fff;
+        border-radius: 9rem;
+        width: 25px;
+        height: 25px;
+        display: inline-flex; /* 讓 icon 在圓圈內水平垂直居中 */
+        align-items: center;
+        justify-content: center;
+        margin-left: 10px;
+        transition: background-color 0.3s;
+
+        &:hover {
+          background-color: $color-content;
+        }
+
+        .cartIcon {
+          font-size: 14px; /* 設定 icon 的大小 */
+        }
+      }
+    }
+  }
+}
+
+.cardCheck {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  background-color: $color-primary;
+  color: #fff;
+  border-radius: 9rem;
+  padding: 8px 20px;
+  transition: background-color 0.3s;
+  h2 {
+    display: flex;
+    align-items: center;
+  }
+
+  &:hover {
+    background-color: $color-accent;
+    color: $color-background;
+  }
+}
+
+.cardIcon {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  color: #fff;
+  background: $color-accent;
+  border-radius: 9rem;
+  font-size: $font-size-icon;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  width: 60px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: $color-hover;
+  }
+}
+// 材料選單 End
+.seasoningHighlight {
+  color: rgba(250, 248, 249, 1);
+}
+
+/* Steps Section */
+.stepsSection {
+  max-width: 1280px;
+  align-self: center;
+  width: 1280px;
+  // box-shadow: $card-shadow;
+  overflow: hidden;
+  margin-bottom: 100px;
+}
+
+.stepsContainer {
+  display: flex;
+  justify-content: center;
+  background-color: #fff;
+  padding: 25px 150px;
+  border-radius: 0 0 30px 30px;
+}
+
+.stepItem {
+  display: flex;
+  gap: 80px;
+  margin-bottom: 20px;
+}
+
+.stepNumberDark,
+.stepNumberLight {
+  justify-content: center;
+  border-radius: 20px;
+  display: flex;
+  gap: 5px;
+  color: #fff;
+  width: 70px;
+  height: 70px;
+}
+
+.stepNumberDark {
+  background-color: $color-primary;
+}
+
+.stepNumberLight {
+  background-color: $color-accent;
+}
+
+.stepNumberText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stepNumberValue {
+  display: flex;
+  align-items: center;
+  font-size: 50px;
+  font-family:
+    Proza Libre,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  line-height: 0;
+}
+
+.stepDescription {
+  font-size: $font-size-p1;
+  margin: auto 0;
+  flex: 1;
+}
+
+/* 美食笑尖兵 */
+.chefContainer {
+  width: 100%;
+  background-color: $color-background-error;
+
+  .chefCard {
+    max-width: 1280px;
+    // height: 30rem;
+    display: flex;
+    margin: 0 auto;
+
+    img {
+      width: 50%;
+      object-fit: cover;
+      object-position: center top;
+    }
+    div {
+      padding: 50px;
+      h2 {
+        color: $color-primary;
+      }
+      p {
+        font-size: $font-size-p1;
+        color: $color-primary;
+        letter-spacing: 0.6px;
+        margin-top: 20px;
+      }
+    }
+  }
+}
+
+/* user_feedbacks */
+.commentsSection {
+  // padding-bottom: 100px;
+  margin: 50px auto;
+
+  .commentsContainer {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    width: 1280px;
+    max-width: 1280px;
+  }
+}
+
+.addCommentButton {
+  align-items: center;
+  align-self: flex-end;
+  @include button-text;
+  color: #fff;
+  background-color: $color-primary;
+  &:hover {
+    background-color: $color-special;
+  }
+}
+
+.commentsList01 {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  align-items: center;
+
+  button:nth-of-type(1) {
+    z-index: 10;
+    margin-right: 25px;
+    @include button-arrow;
+  }
+  button:nth-of-type(2) {
+    z-index: 10;
+    margin-left: 25px;
+    @include button-arrow;
+    transform: scaleX(-1);
+  }
+}
+.commentsList {
+  display: flex;
+  gap: 15px;
+}
+
+.commentCard {
+  border-radius: 30px;
+  box-shadow: $card-shadow;
+  background-color: #fff;
+  width: 365px;
+  height: 287px;
+  // width: 100%;
+  padding: 30px 40px 0;
+  display: flex;
+  flex-direction: column; /* 整體從上至下排列 */
+
+  div:nth-of-type(1) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    img {
+      width: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .userInfo {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-self: flex-start;
+      margin-left: 25px;
+      color: $color-accent;
+
+      .buttonBiLike01 {
+        all: unset; /* 重置所有樣式 */
+        align-self: flex-end;
+        color: $color-background-error;
+        font-size: $font-size-icon;
+
+        &:hover {
+          color: $color-content; /* 滑鼠懸停時改變顏色 */
+        }
+      }
+      .buttonBiLike02 {
+        all: unset; /* 重置所有樣式 */
+        align-self: flex-end;
+        color: $color-special;
+        font-size: $font-size-icon;
+      }
+      h3 {
+        font-size: $font-size-h3;
+        margin: 0;
+        align-self: flex-start;
+      }
+
+      p {
+        align-self: flex-start;
+        font-size: $font-size-p1;
+        color: $color-content;
+        letter-spacing: 0.48px;
+        margin-top: 5px; /* 上下間距 */
+      }
+    }
+  }
+}
+
+.commentContent {
+  justify-content: center;
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  width: 100%;
+  white-space: normal; /* 允許文字換行 */
+  padding: 0 0 30px;
+  word-wrap: normal;
+  overflow: hidden; /* 隱藏超出區塊的內容 */
+  h2 {
+    display: -webkit-box; /* 必須搭配 line-clamp 使用 */
+    -webkit-line-clamp: 1; /* 限制顯示的行數，例如 2 行 */
+    -webkit-box-orient: vertical; /* 設定為垂直方向 */
+    overflow: hidden; /* 隱藏超出區塊的內容 */
+    text-overflow: ellipsis; /* 使用省略號表示超出的文字 */
+  }
+
+  p {
+    color: $color-content;
+    font-size: $font-size-p1;
+    letter-spacing: 0.48px;
+    margin-top: 10px;
+    display: -webkit-box; /* 必須搭配 line-clamp 使用 */
+    -webkit-line-clamp: 3; /* 限制顯示的行數，例如 2 行 */
+    -webkit-box-orient: vertical; /* 設定為垂直方向 */
+    overflow: hidden; /* 隱藏超出區塊的內容 */
+    text-overflow: ellipsis; /* 使用省略號表示超出的文字 */
+  }
+}
+
+/* Related Recipes Section */
+.relatedRecipesSection {
+  width: 100%;
+  padding: 50px 0 70px 0;
+  text-align: center;
+  background-color: $color-accent;
+  div {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1280px;
+
+    h2 {
+      color: $color-background;
+      font-size: 32px;
+      padding: 0 0 30px 0;
+    }
+    .relatedRecipesGrid {
+      display: flex;
+      gap: 15px;
+      color: $color-primary;
+      h3 {
+        color: $color-primary;
+      }
+      .relatedRecipeCard {
+        border-radius: 30px;
+        background-color: #fff;
+        width: 100%;
+        overflow: hidden;
+        .relatedRecipeImage {
+          background-color: $color-background-error;
+          height: 200px;
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        h2 {
+          padding: 20px 0;
+          color: $color-primary;
+          font-size: $font-size-h3;
+          align-self: stretch;
+        }
+      }
+    }
+  }
+}
+
+/* sticker */
+.sticker1 {
+  z-index: 1;
+  width: 200px;
+  position: absolute;
+  right: 290px;
+  top: 1000px;
+  transform: rotate(250deg);
+}
+
+.sticker2 {
+  width: 300px;
+  position: absolute;
+  left: 41px;
+  top: 700px;
+}
+
+.sticker3 {
+  width: 200px;
+  position: absolute;
+  right: 150px;
+  top: 720px;
+  transform: scaleX(-1);
+}
+
+.sticker5 {
+  width: 300px;
+  position: absolute;
+  right: 160px;
+  top: 1100px;
+}
+
+/* Media Queries */
+@media (max-width: 991px) {
+  .heroSection {
+    max-width: 100%;
+    padding-bottom: 100px;
+  }
+
+  .heroImage {
+    max-width: 100%;
+  }
+
+  .ingredientsSection {
+    padding-bottom: 100px;
+  }
+
+  .ingredientCard,
+  .seasoningCard {
+    max-width: 100%;
+  }
+
+  .cardBody {
+    max-width: 100%;
+  }
+
+  .cardContent {
+    max-width: 100%;
+  }
+
+  .cardTitle {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    white-space: initial;
+  }
+
+  .cardList {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .stepsSection {
+    padding-bottom: 100px;
+  }
+
+  .stepsContainer {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .stepItem {
+    max-width: 100%;
+    white-space: initial;
+  }
+
+  .stepNumberDark,
+  .stepNumberLight {
+    white-space: initial;
+  }
+
+  .stepNumberText {
+    white-space: initial;
+  }
+
+  .stepNumberValue {
+    font-size: 40px;
+  }
+
+  .stepDescription {
+    max-width: 100%;
+  }
+
+  .addToCartButton {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 40px;
+  }
+
+  .addToCartTitle {
+    font-size: 40px;
+  }
+
+  .chefCard {
+    max-width: 100%;
+    white-space: initial;
+  }
+
+  .chefBackground {
+    max-width: 100%;
+  }
+
+  .chefContent {
+    max-width: 100%;
+    padding-bottom: 100px;
+    white-space: initial;
+  }
+
+  .chefTitle {
+    max-width: 100%;
+  }
+
+  .chefDescription {
+    max-width: 100%;
+  }
+
+  .commentsSection {
+    position: relative; /* 父容器設置相對定位 */
+    padding-bottom: 100px;
+  }
+
+  .addCommentButton {
+    padding-left: 20px;
+    padding-right: 20px;
+    white-space: initial;
+  }
+
+  .commentsList {
+    max-width: 100%;
+  }
+
+  .commentCard {
+    max-width: 100%;
+  }
+
+  .commentUser {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .commentContent {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-top: 40px;
+    white-space: initial;
+  }
+
+  .commentTitle {
+    max-width: 100%;
+  }
+
+  .commentText {
+    max-width: 100%;
+  }
+
+  .relatedRecipesSection {
+    max-width: 100%;
+    white-space: initial;
+  }
+
+  .relatedRecipesTitle {
+    max-width: 100%;
+    font-size: 40px;
+  }
+
+  .relatedRecipesGrid {
+    max-width: 100%;
+    margin-top: 40px;
+    white-space: initial;
+  }
+
+  .relatedRecipeCard {
+    white-space: initial;
+  }
+
+  .relatedRecipeTitle {
+    padding-left: 20px;
+    padding-right: 20px;
+    white-space: initial;
+  }
+
+  .footer {
+    max-width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .footerContent {
+    max-width: 100%;
+  }
+
+  .footerLeft {
+    max-width: 100%;
+  }
+
+  .footerThankYou {
+    max-width: 100%;
+  }
+
+  .feedbackText {
+    max-width: 100%;
+  }
+
+  .feedbackInput {
+    max-width: 100%;
+    white-space: initial;
+  }
+
+  .faqButton {
+    padding-left: 20px;
+    padding-right: 20px;
+    white-space: initial;
+  }
+
+  .navbar {
+    max-width: 100%;
+  }
+
+  .navbarInner {
+    max-width: 100%;
+  }
+
+  .navLeftGroup {
+    max-width: 100%;
+    white-space: initial;
+  }
+
+  .navBtnGroup {
+    max-width: 100%;
+    white-space: initial;
+  }
+
+  .navBtn {
+    white-space: initial;
+  }
+
+  .navRightGroup {
+    max-width: 100%;
+  }
+}
