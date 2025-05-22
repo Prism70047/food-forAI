@@ -209,7 +209,7 @@ export default function RegisterPage() {
       const result = await res.json()
 
       if (result.success) {
-        toast.success('註冊成功！將導向登入頁面...')
+        toast.success('註冊成功！')
         setFormData({
           // 清空表單
           email: '',
@@ -223,9 +223,10 @@ export default function RegisterPage() {
           address: '',
         })
         setErrors({}) // 清除錯誤
-        setTimeout(() => {
-          router.push('/register-success') // 導向註冊成功頁面
-        })
+
+        // 設定 sessionStorage 標記 (避免直接造訪註冊成功頁面)
+        sessionStorage.setItem('registrationSuccess', 'true')
+        router.push('/register-success') // 導向註冊成功頁面
       } else {
         if (result.errors) {
           // 後端 Zod 驗證錯誤，通常是 email/username 重複，或是其他 Zod schema 驗證失敗

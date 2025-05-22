@@ -26,6 +26,8 @@ import restaurantsRouter from "./routes/restaurants.js";
 import cartRouter from "./routes/cart.js";
 // 設定到聯絡我們的路由
 import contactRouter from "./routes/contact.js";
+// 設定會員註冊的路由
+import registerRouter from './routes/register.js';
 
 const MySQLStore = mysql_session(session);
 const sessionStore = new MySQLStore({}, db);
@@ -116,6 +118,8 @@ app.use('/restaurants', restaurantsRouter);
 app.use('/cart', cartRouter);
 // 連到聯絡我們的
 app.use('/contact', contactRouter);
+// 連到會員註冊的
+app.use('/register', registerRouter)
 
 // 路由定義, 兩個條件: 1. 拜訪的 HTTP 方法, 2. 路徑
 app.get("/", (req, res) => {

@@ -1,5 +1,5 @@
 // 會員註冊 API
-// Node/routes/register.js
+// http://localhost:3001/api/register
 
 import express from "express";
 import db from "../utils/connect-mysql.js";
