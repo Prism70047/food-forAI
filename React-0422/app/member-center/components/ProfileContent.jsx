@@ -11,22 +11,10 @@ const ProfileContent = () => {
   const router = useRouter()
 
   useEffect(() => {
-    console.log('🔎 authInit:', authInit)
-    console.log('🔎 auth:', auth)
-    if (authInit) {
-      if (auth?.id) {
-        console.log('✅ 用戶登入:', auth.id)
-      } else {
-        console.warn('⛔️ 用戶未登入，auth 內容:', auth)
-      }
-    } else {
-      console.log('⌛ 等待 auth 初始化中...')
-    }
-
-    if (authInit && !auth?.id) {
+    if (authInit && !auth?.user_id) {
       router.push('/login')
     }
-  }, [authInit, auth])
+  }, [authInit, auth, router])
 
   const fetcher = async (url) => {
     try {
@@ -38,7 +26,12 @@ const ProfileContent = () => {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `HTTP error! status: ${response.status}` }))
+        throw new Error(
+          errorData.error || `HTTP error! status: ${response.status}`
+        )
       }
 
       const data = await response.json()
@@ -50,10 +43,11 @@ const ProfileContent = () => {
       return data
     } catch (error) {
       console.error('API 錯誤:', error)
-      throw error
+      throw error // 拋出錯誤以便 SWR 捕捉
     }
   }
 
+  // 確保 auth.user_id 存在才發起請求
   const shouldFetch = authInit && auth?.id
   const { data, error } = useSWR(
     shouldFetch
@@ -77,8 +71,18 @@ const ProfileContent = () => {
     { label: '姓名', value: user.full_name },
     { label: '使用者名稱', value: user.username },
     { label: '生日', value: user.birthday },
-    { label: '性別', value: user.gender },
-    { label: '地址', value: user.address },
+    {
+      label: '性別',
+      value:
+        user.gender === 'M'
+          ? '男'
+          : user.gender === 'F'
+            ? '女'
+            : user.gender === 'Other'
+              ? '其他'
+              : '不提供',
+    },
+    { label: '地址', value: user.address || '未填寫' },
   ]
 
   return (
@@ -87,6 +91,8 @@ const ProfileContent = () => {
         <div className={styles.userPhoto}>
           <img
             src={
+              // TODO: 資料表 users 增加 avatar 圖片欄位，並提供上傳功能
+              // 若無上傳則使用預設圖片
               user.avatar ||
               'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f'
             }
@@ -109,9 +115,7 @@ const ProfileContent = () => {
         {profileFields.map((field, index) => (
           <div key={index} className={styles.detailRow}>
             <div className={styles.detailTitle}>{field.label}</div>
-            <div className={styles.detailContent}>
-              {field.value || '尚未填寫'}
-            </div>
+            <div className={styles.detailContent}>{field.value}</div>
           </div>
         ))}
       </div>

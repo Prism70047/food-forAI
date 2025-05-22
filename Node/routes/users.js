@@ -1,9 +1,6 @@
 import express from "express";
-import db from "../utils/connect-mysql.js"; // 連接資料庫
-import fs from "node:fs/promises";
-import { z } from "zod";
-import moment from "moment-timezone";
-import upload from "../utils/upload-imgs.js";
+import db from "../utils/connect-mysql.js"; 
+
 
 const router = express.Router();
 
@@ -51,14 +48,36 @@ router.get("/api", async (req, res) => {
 
 // 取得單一會員資料
 router.get("/api/:id", async (req, res) => {
+  // 加入 JWT 驗證，確保只有已登入且為本人的使用者才能存取
+  if (!req.my_jwt || req.my_jwt.user_id !== +req.params.id)
+    return res.status(403).json({ success: false, error: "無權限存取此資料" });
+
   try {
-    const [rows] = await db.query("SELECT * FROM users WHERE user_id=?", [req.params.id]);
+    const userId = req.params.id;
+    const sql = `
+      SELECT 
+        user_id, 
+        email, 
+        phone_number, 
+        full_name, 
+        DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, 
+        gender, 
+        address, 
+        username, 
+      FROM users 
+      WHERE user_id=?
+    `;
+    const [rows] = await db.query(sql, [userId]);
+
     if (!rows.length) {
       return res.status(404).json({ success: false, error: "找不到會員資料" });
     }
-    res.json({ success: true, rows: rows[0] });
+
+    const userProfile = rows[0];
+    res.json({ success: true, rows: userProfile });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("取得會員資料 API 錯誤:", error);
+    res.status(500).json({ success: false, error: "伺服器錯誤" });
   }
 });
 
