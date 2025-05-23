@@ -19,6 +19,9 @@
     h3 {
       color: #fff5ee;
     }
+    p {
+      color: #fff5ee;
+    }
 
     div {
       margin-top: 20px;
@@ -73,5 +76,14 @@
   .footer {
     max-width: 100%;
     padding: 0 20px;
+  }
+  .footerContent {
+    span:nth-of-type(1) {
+      display: flex;
+      width: 100%;
+    }
+    span:nth-of-type(2) {
+      display: none;
+    }
   }
 }

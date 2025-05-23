@@ -120,6 +120,7 @@ export function CartProvider({ children }) {
         onDecrease,
         onIncrease,
         onRemove,
+        didMount,
       }}
     >
       {children}
@@ -134,6 +135,6 @@ export function CartProvider({ children }) {
  * useAuth是一個設計專門用來讀取CartContext的值的勾子(hook)。
  * items, totalAmount, totalQty, onAdd, onDecrease, onIncrease, onRemove,
  *
- * @returns {{items: Array, totalAmount:number,  totalQty: number, onAdd: Function, onDecrease: Function, onIncrease: Function, onRemove: Function}}
+ * @returns {{items: Array, totalAmount:number,  totalQty: number, onAdd: Function, onDecrease: Function, onIncrease: Function, onRemove: Function,}}
  */
 export const useCart = () => useContext(CartContext)

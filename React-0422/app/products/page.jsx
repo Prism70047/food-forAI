@@ -9,7 +9,7 @@ import { GrPrevious, IoIosArrowBack } from '../icons/icons' // 使用 react-icon
 // 這個很棒
 const API_BASE_URL = 'http://localhost:3001/products' // 根據實際情況修改
 
-// 新增: API 請求函數
+//API 請求函數
 const fetchAllProducts = async (page, limit = 12) => {
   const response = await fetch(
     `${API_BASE_URL}/api/products?page=${page}&limit=${limit}`
@@ -30,9 +30,9 @@ export default function ProductListPage() {
   //  State 狀態管理
   const [products, setProducts] = useState([]) // 顯示中的產品資料
   const [loading, setLoading] = useState(true) // 是否在載入中
-  const [currentPage, setCurrentPage] = useState(1) // 目前頁碼 (初始值改為 1，因為有分類和搜尋時通常從第一頁開始)
+  const [currentPage, setCurrentPage] = useState(1) // 目前頁碼 (初ㄌ始值改為 1，因為有分類和搜尋時通常從第一頁開始)
   const [totalPages, setTotalPages] = useState(1) // 總頁數（預設改為 1）
-  const [activeCategory, setActiveCategory] = useState('本周熱銷') // 目前分類
+  const [activeCategory, setActiveCategory] = useState('全部') // 目前分類
   const [sortByPrice, setSortByPrice] = useState(null) // 是否以價格排序，null 表示不排序
   const [searchTerm, setSearchTerm] = useState('') // 新增：搜尋關鍵字狀態
   const [searchInput, setSearchInput] = useState('') // 新增：搜尋輸入值狀態
@@ -49,7 +49,7 @@ export default function ProductListPage() {
       try {
         // 判斷是否需要篩選
         const hasFilters =
-          activeCategory !== '本周熱銷' ||
+          activeCategory !== '全部' ||
           searchTerm ||
           minPrice ||
           maxPrice ||
@@ -60,7 +60,7 @@ export default function ProductListPage() {
           const params = new URLSearchParams({
             page: currentPage.toString(),
             limit: '15',
-            category: activeCategory !== '本周熱銷' ? activeCategory : '',
+            category: activeCategory !== '全部' ? activeCategory : '',
             search: searchTerm,
             sort: sortByPrice ? 'price_desc' : 'price_asc',
             minPrice,
@@ -88,17 +88,23 @@ export default function ProductListPage() {
     getProducts()
   }, [currentPage, activeCategory, sortByPrice, searchTerm, minPrice, maxPrice]) // 使用實際查詢價格，而不是輸入值
 
-  // 修改分類切換函數，清除價格查詢
+  // 修改分類切換函數
   const handleCategoryChange = (category) => {
+    // 如果點擊當前分類且不是全部，不做任何事
+    if (category === activeCategory && category !== '全部') return
+
     setActiveCategory(category)
     setCurrentPage(1)
-    setSearchTerm('')
-    setSearchInput('')
-    setMinPrice('')
-    setMaxPrice('')
-    setMinPriceInput('')
-    setMaxPriceInput('')
-    setSortByPrice(null) // 清除價格排序
+    // 如果點擊全部，重置所有篩選條件
+    if (category === '全部') {
+      setSearchTerm('')
+      setSearchInput('')
+      setMinPrice('')
+      setMaxPrice('')
+      setMinPriceInput('')
+      setMaxPriceInput('')
+      setSortByPrice(null)
+    }
   }
 
   const getArrowIcon = () => {
@@ -122,7 +128,7 @@ export default function ProductListPage() {
   const handleSearch = () => {
     setSearchTerm(searchInput)
     setCurrentPage(1)
-    setActiveCategory('本周熱銷')
+    setActiveCategory('全部')
     setMinPrice('')
     setMaxPrice('')
   }
@@ -152,13 +158,14 @@ export default function ProductListPage() {
     setCurrentPage(1)
     setSearchTerm('')
     setSearchInput('')
-    setActiveCategory('本周熱銷')
+    setActiveCategory('全部')
   }
 
   //  分頁控制：前後頁或指定頁碼
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -214,7 +221,7 @@ export default function ProductListPage() {
               placeholder="搜尋商品..."
               value={searchInput}
               onChange={handleSearchInputChange}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               className={styles.searchBar}
             />
             <button onClick={handleSearch} className={styles.searchButton}>
@@ -227,7 +234,7 @@ export default function ProductListPage() {
             <input
               type="text"
               placeholder="最低價格"
-              value={minPrice}
+              value={minPriceInput}
               onChange={(e) => handlePriceInput('min', e.target.value)}
               className={styles.priceInput}
             />
@@ -235,7 +242,7 @@ export default function ProductListPage() {
             <input
               type="text"
               placeholder="最高價格"
-              value={maxPrice}
+              value={maxPriceInput}
               onChange={(e) => handlePriceInput('max', e.target.value)}
               className={styles.priceInput}
             />
@@ -250,36 +257,27 @@ export default function ProductListPage() {
 
         {/* 分類按鈕（動態 active 樣式） */}
         <div className={styles.filterContainer}>
-          <button
-            className={`${activeCategory === '本周熱銷' ? styles.active : ''}`}
-            onClick={() => handleCategoryChange('本周熱銷')}
-          >
-            <h3>熱門商品</h3>
-          </button>
-          <button
-            className={` ${activeCategory === '蔬菜類' ? styles.active : ''}`}
-            onClick={() => handleCategoryChange('蔬菜類')}
-          >
-            <h3>蔬菜類</h3>
-          </button>
-          <button
-            className={` ${activeCategory === '肉類' ? styles.active : ''}`}
-            onClick={() => handleCategoryChange('肉類')}
-          >
-            <h3>肉類</h3>
-          </button>
-          <button
-            className={` ${activeCategory === '海鮮類' ? styles.active : ''}`}
-            onClick={() => handleCategoryChange('海鮮類')}
-          >
-            <h3>海鮮類</h3>
-          </button>
-          <button
-            className={`${activeCategory === '調味品' ? styles.active : ''}`}
-            onClick={() => handleCategoryChange('調味品')}
-          >
-            <h3>調味品</h3>
-          </button>
+          {[
+            { id: 'hot', name: '全部', isHome: true },
+            { id: 'vegetable', name: '蔬菜類' },
+            { id: 'meat', name: '肉類' },
+            { id: 'seafood', name: '海鮮類' },
+            { id: 'seasoning', name: '調味品' },
+          ].map((category) => (
+            <button
+              key={category.id}
+              className={`
+                ${styles.categoryButton}
+                ${activeCategory === category.name ? styles.active : ''}
+                ${category.isHome ? styles.homeButton : ''}
+              `}
+              onClick={() => handleCategoryChange(category.name)}
+              aria-pressed={activeCategory === category.name}
+              role="tab"
+            >
+              <h3>{category.name}</h3>
+            </button>
+          ))}
         </div>
 
         {/* 價格排序 */}

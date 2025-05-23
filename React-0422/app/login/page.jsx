@@ -17,45 +17,8 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({
     email: '',
     password: '',
+    submit: '', // 當提交時出現錯誤的狀態
   })
-
-  console.log('auth', auth)
-
-  // 新增驗證函數
-  const validateField = (name, value) => {
-    if (name === 'email') {
-      if (!value) {
-        setErrors((prev) => ({
-          ...prev,
-          email: '請輸入電子信箱',
-        }))
-      } else if (!validateEmail(value)) {
-        setErrors((prev) => ({
-          ...prev,
-          email: '帳號格式錯誤或此帳號尚未註冊',
-        }))
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          email: '',
-        }))
-      }
-    }
-
-    if (name === 'password') {
-      if (!value) {
-        setErrors((prev) => ({
-          ...prev,
-          password: '請輸入密碼',
-        }))
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          password: '',
-        }))
-      }
-    }
-  }
 
   // 驗證電子郵件格式
   const validateEmail = (email) => {
@@ -63,14 +26,34 @@ export default function LoginPage() {
     return emailRegex.test(email)
   }
 
+  // 欄位失焦時進行驗證
+  const validateField = (name, value) => {
+    let error = ''
+    if (name === 'email') {
+      if (!value) {
+        error = '請輸入電子信箱'
+      } else if (!validateEmail(value)) {
+        error = '帳號格式錯誤或此帳號尚未註冊'
+      }
+    }
+    if (name === 'password') {
+      if (!value) {
+        error = '請輸入密碼'
+      }
+    }
+    setErrors((prev) => ({ ...prev, [name]: error }))
+  }
+
+  // 提交表單
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setErrors({ email: '', password: '' })
+    setErrors({ email: '', password: '', submit: '' }) // 重置所有錯誤訊息
 
     let hasError = false
     let newErrors = {
       email: '',
       password: '',
+      submit: '',
     }
 
     // 同時檢查 email 和密碼
@@ -98,14 +81,15 @@ export default function LoginPage() {
         router.push('/member-center')
       } else {
         setErrors({
-          email: '帳號格式錯誤或此帳號尚未註冊',
-          password: '密碼錯誤',
+          ...prev,
+          submit: '帳號或密碼錯誤，請重新輸入',
         })
       }
     } catch (err) {
+      console.error('登入錯誤：', err)
       setErrors({
-        email: '登入時發生錯誤，請稍後再試',
-        password: '',
+        ...prev,
+        submit: '登入時發生問題，請稍後再試。',
       })
     }
   }
@@ -127,6 +111,7 @@ export default function LoginPage() {
         <h1 className={styles.title}>會員登入</h1>
 
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
+          {/* 帳號輸入框 */}
           <div className={styles.formGroup}>
             <label htmlFor="email" className={styles.label}>
               帳號 (電子信箱)
@@ -145,6 +130,7 @@ export default function LoginPage() {
             )}
           </div>
 
+          {/* 密碼輸入框 */}
           <div className={styles.formGroup}>
             <label htmlFor="password" className={styles.label}>
               密碼
@@ -173,6 +159,13 @@ export default function LoginPage() {
             )}
           </div>
 
+          {/* 提交後的錯誤訊息 */}
+          {errors.submit && (
+            <div className={`${styles.errorMessage} ${styles.submitError}`}>
+              {errors.submit}
+            </div>
+          )}
+
           <Link href="/forgot-password" className={styles.forgotPassword}>
             忘記密碼
           </Link>
@@ -182,12 +175,14 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* 其他帳號登入 */}
         <div className={styles.divider}>
           <span className={styles.dividerLine}></span>
           <span className={styles.dividerText}>以其他帳號登入</span>
           <span className={styles.dividerLine}></span>
         </div>
 
+        {/* TODO: 第三方登入API */}
         <div className={styles.socialButtons}>
           <button className={styles.socialButton}>
             <FaGoogle />

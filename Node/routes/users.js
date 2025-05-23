@@ -1,6 +1,6 @@
 import express from "express";
-import db from "../utils/connect-mysql.js"; 
-
+import db from "../utils/connect-mysql.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -49,8 +49,30 @@ router.get("/api", async (req, res) => {
 // 取得單一會員資料
 router.get("/api/:id", async (req, res) => {
   // 加入 JWT 驗證，確保只有已登入且為本人的使用者才能存取
-  if (!req.my_jwt || req.my_jwt.user_id !== +req.params.id)
-    return res.status(403).json({ success: false, error: "無權限存取此資料" });
+  // --- JWT 驗證開始 ---
+  const authHeader = req.get("Authorization");
+  console.log("Auth Header:", authHeader); // 除錯，印出 Authorization 標頭的內容
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ success: false, error: "未經授權：缺少 Token", debug: { authHeader } });
+  }
+  const token = authHeader.slice(7);
+  let decodedToken;
+  try {
+    decodedToken = jwt.verify(token, process.env.JWT_KEY);
+  } catch (error) {
+    return res.status(401).json({ success: false, error: "未經授權：無效的 Token" });
+  }
+
+  // 檢查請求的 user_id 是否與 token 中的 user_id 相符
+  // decodedToken.user_id 是從 JWT payload 中解出來的
+  // req.params.id 由 URL 路徑中取得，+req.params.id 將字串轉為數字
+  if (decodedToken.user_id !== +req.params.id) {
+    return res.status(403).json({ success: false, error: "禁止存取：您無權存取此會員資料" });
+  }
+  // --- JWT 驗證結束 ---
 
   try {
     const userId = req.params.id;
@@ -63,7 +85,7 @@ router.get("/api/:id", async (req, res) => {
         DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, 
         gender, 
         address, 
-        username, 
+        username
       FROM users 
       WHERE user_id=?
     `;
@@ -74,7 +96,7 @@ router.get("/api/:id", async (req, res) => {
     }
 
     const userProfile = rows[0];
-    res.json({ success: true, rows: userProfile });
+    res.json({ success: true, rows: userProfile }); // 注意：保持 data.rows 的結構
   } catch (error) {
     console.error("取得會員資料 API 錯誤:", error);
     res.status(500).json({ success: false, error: "伺服器錯誤" });

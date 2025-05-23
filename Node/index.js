@@ -15,7 +15,7 @@ import jwt from "jsonwebtoken";
 import recipesRouter from "./routes/recipes.js";
 // 設定連到商城的路由
 import productsRouter from "./routes/products.js";
-// 設定連到使用者的路由 
+// 設定連到使用者的路由
 import usersRouter from "./routes/users.js";
 // 設定連到評價的路由
 import reviewRouter from "./routes/products-review.js";
@@ -25,6 +25,8 @@ import restaurantsRouter from "./routes/restaurants.js";
 import cartRouter from "./routes/cart.js";
 // 設定到聯絡我們的路由
 import contactRouter from "./routes/contact.js";
+// 設定到訂單頁面的路由
+import orderRouter from "./routes/order.js";
 // 設定會員註冊的路由
 import registerRouter from "./routes/register.js";
 
@@ -98,12 +100,13 @@ app.use((req, res, next) => {
 });
 
 // Top-level middlewares
+app.use(express.json());  // <-- 處理 JSON 請求 body
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // <-- 處理 JSON 請求 body
 // 連到食譜
 app.use("/recipes", recipesRouter);
 app.use("/products", productsRouter);
-// 連到use這個路由
+// 連到users
 app.use("/users", usersRouter);
 // 連到評價的
 app.use("/products-review", reviewRouter);
@@ -112,6 +115,9 @@ app.use("/restaurants", restaurantsRouter);
 // 連到購物車
 app.use("/cart", cartRouter);
 // 連到聯絡我們的
+app.use('/contact', contactRouter);
+// 連到訂單頁面
+app.use('/api/orders', orderRouter);
 app.use("/contact", contactRouter);
 // 連到會員註冊的
 app.use("/register", registerRouter);
@@ -395,8 +401,10 @@ app.get("/cate3", async (req, res) => {
   res.json(rows.filter((v) => !v.parent_id));
 });
 
-// 導入到React的前端區塊
+// 導入到 React 的前端區塊
 app.use(express.static("build"));
+
+// 當前端的 React App 沒有找到對應的 API 路由時，會導向這個全域的路由
 app.get("*", (req, res) => {
   res.send(
     `<!doctype html><html lang="zh"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="Shinder react hooks"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"/><title>Shinder react hooks</title><script defer="defer" src="/static/js/main.6a205622.js"></script></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>`
@@ -409,7 +417,7 @@ app.use((req, res) => {
   res.status(404).send(`<h1>您走錯路了</h1>`);
 });
 
-const port = process.env.WEB_PORT || 3002;
+const port = process.env.WEB_PORT || 3001;
 
 app.listen(port, () => {
   console.log(`Express Server 啟動: ${port}`);

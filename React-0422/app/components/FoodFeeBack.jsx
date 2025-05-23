@@ -3,6 +3,9 @@
 import React, { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/hooks/auth-context'
+import { useSearchParams } from 'next/navigation'
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
 
 const styles = {
   title: {
@@ -36,20 +39,26 @@ const styles = {
   },
 }
 
-export default function FoodFeeBack() {
-  const { id } = useParams() // 從動態路由中獲取 recipeId
-  const { auth } = useAuth()
+export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
+  const { id } = useParams() || {} // 從動態路由中獲取 recipeId
+  // const searchParams = useSearchParams()
+  // const id = recipeId || searchParams.get('id') // 從 props 或 URL 參數獲取 id
+
   const [title, setTitle] = useState('')
   const [context, setComment] = useState('')
   const [isLike, setIsLike] = useState(0) // 預設為按讚
-
-  console.log('recipeId:', id) // 確認 recipeId 是否正確獲取
+  console.log('auth:', auth) // 確認 auth 是否正確獲取
+  console.log('recipeId:', recipeId) // 確認 recipeId 是否正確獲取
   console.log('auth:', auth.id) // 確認 auth 是否正確獲取
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (title.trim() === '' || context.trim() === '') {
-      alert('請填寫完整的標題和評論！')
+    if (!id) {
+      Swal.fire({
+        title: '錯誤',
+        text: '無法獲取食譜 ID',
+        icon: 'error',
+      })
       return
     }
 
@@ -62,7 +71,7 @@ export default function FoodFeeBack() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            recipeId: id,
+            recipeId: recipeId,
             userId: auth.id,
             title: title.trim(),
             context: context.trim(),
@@ -74,47 +83,60 @@ export default function FoodFeeBack() {
       const result = await response.json() // 新增這行來獲取回應內容
 
       if (response.ok) {
-        alert('感謝您的評論！')
-        setTitle('')
-        setComment('')
-        setIsLike(0)
+        Swal.fire({
+          title: '成功',
+          text: '感謝您的評論！',
+          icon: 'success',
+        }).then(() => {
+          if (onSubmitSuccess) {
+            onSubmitSuccess()
+          }
+        })
       } else {
-        alert(`提交失敗：${result.error}`) // 顯示具體的錯誤訊息
+        Swal.fire({
+          title: '錯誤',
+          text: `提交失敗：${result.error}`,
+          icon: 'error',
+        })
       }
     } catch (error) {
       console.error('提交表單時發生錯誤：', error)
-      alert('提交失敗，請檢查您的網路連線！')
+      Swal.fire({
+        title: '錯誤',
+        text: '提交失敗，請檢查您的網路連線！',
+        icon: 'error',
+      })
     }
   }
 
   return (
     <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        backgroundColor: '#F5F5F5',
-      }}
+    // style={{
+    //   display: 'flex',
+    //   justifyContent: 'center',
+    //   alignItems: 'center',
+    //   minHeight: '100vh',
+    //   backgroundColor: '#F5F5F5',
+    // }}
     >
       <form
         onSubmit={handleSubmit}
-        style={{
-          width: '100%',
-          maxWidth: 800,
-          paddingTop: 35,
-          paddingBottom: 50,
-          background: 'white',
-          boxShadow: '2px 3px 8px rgba(0, 0, 0, 0.25)',
-          borderRadius: 30,
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 22,
-          display: 'inline-flex',
-        }}
+        // style={{
+        //   width: '100%',
+        //   maxWidth: 800,
+        //   paddingTop: 35,
+        //   paddingBottom: 50,
+        //   background: 'white',
+        //   boxShadow: '2px 3px 8px rgba(0, 0, 0, 0.25)',
+        //   borderRadius: 30,
+        //   flexDirection: 'column',
+        //   justifyContent: 'center',
+        //   alignItems: 'center',
+        //   gap: 22,
+        //   display: 'inline-flex',
+        // }}
       >
-        <div style={styles.title}>撰寫評論</div>
+        {/* <div style={styles.title}>撰寫評論</div> */}
         <div
           style={{
             alignSelf: 'stretch',
@@ -207,12 +229,12 @@ export default function FoodFeeBack() {
               display: 'flex',
             }}
           >
-            <input
+            {/* <input
               type="checkbox"
               checked={isLike === 1}
               onChange={(e) => setIsLike(e.target.checked ? 1 : 0)}
             />
-            <label>我喜歡這個食譜</label>
+            <label>我喜歡這個食譜</label> */}
           </div>
         </div>
         <button

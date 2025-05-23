@@ -6,8 +6,11 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/auth-context'
 import './style.css' // style.css 在同一資料夾或正確路徑
 import { useRouter } from 'next/navigation'
+import { useCart } from '@/hooks/use-cart';
 
 export default function CartPage() {
+  const { item:initialCartItemsFromHook } = useCart();
+  console.log('🛒 ContactPage 剛載入時，useCart() 的 items:',initialCartItemsFromHook);
   //--- 狀態 ---
   //箱子
   const [cartItems, setCartItems] = useState([])
@@ -23,8 +26,13 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState(null)
   // 檢查（沒過跳紅字）
   const handleProceedToContact = () => {
-    console.log('🚀 準備前往 /cart/contact 頁面！')
-    router.push('/cart/contact') // 執行跳轉
+    console.log('🛒 準備跳轉，攜帶的 selectedSubtotal:', selectedSubtotal)
+    console.log('🛒 準備跳轉，攜帶的 shippingFee:', shippingFee)
+    console.log('🛒 準備跳轉，攜帶的 discountAmount:', discountAmount)
+    console.log('🚀 準備前往 /cart/contact 頁面，並攜帶總金額！！')
+    router.push(
+      `/cart/contact?totalAmount=${grandTotal}&subtotal=${selectedSubtotal}&shipping=${shippingFee}&discount=${discountAmount}`
+    ) // 執行跳轉
   }
   // 購物車
   const [isAllSelected, setIsAllSelected] = useState(true) // 全選狀態
@@ -68,19 +76,20 @@ export default function CartPage() {
             `🎉 成功從後端拿到使用者 ${currentUserId} 的購物車資料：`,
             dataFromApi
           )
-          // cartItems 時加上 isSelected 屬性
+          // 轉換後端的數字為布林值
           const itemsWithSelection = dataFromApi.map((item) => ({
             ...item,
-            isSelected: true, // 預設全部勾選
+            isSelected: item.isSelected === 1, // 將 1 轉換為 true，0 轉換為 false
           }))
           setCartItems(itemsWithSelection)
+
           // 根據載入的資料，判斷是否要維持全選狀態
           if (itemsWithSelection.length > 0) {
             setIsAllSelected(
-              itemsWithSelection.every((item) => item.isSelected)
+              itemsWithSelection.every((item) => item.isSelected === 1) // 使用數字比較
             )
           } else {
-            setIsAllSelected(false) // 如果購物車是空的，全選自然是 false
+            setIsAllSelected(false)
           }
         })
         .catch((err) => {
@@ -112,30 +121,107 @@ export default function CartPage() {
   }, [currentUserId, auth]) // 依賴 currentUserId 和 auth
 
   // 全選/取消全選
-  const handleSelectAll = useCallback((event) => {
-    const newIsAllSelected = event.target.checked
-    setIsAllSelected(newIsAllSelected)
-    setCartItems((prevItems) =>
-      prevItems.map((item) => ({ ...item, isSelected: newIsAllSelected }))
-    )
-  }, [])
+  const handleSelectAll = useCallback(
+    async (event) => {
+      const newIsAllSelected = event.target.checked
+      setIsAllSelected(newIsAllSelected)
+
+      try {
+        // 呼叫後端 API 更新所有商品的勾選狀態
+        const response = await fetch(
+          `${API_BASE_URL}/cart/api/items/select-all`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: currentUserId,
+              isSelected: newIsAllSelected,
+            }),
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error('更新勾選狀態失敗')
+        }
+
+        // 更新前端狀態
+        setCartItems((prevItems) =>
+          prevItems.map((item) => ({
+            ...item,
+            isSelected: newIsAllSelected,
+            is_selected: newIsAllSelected,
+          }))
+        )
+      } catch (error) {
+        console.error('更新全選狀態失敗：', error)
+        setError('更新勾選狀態失敗，請稍後再試')
+        // 發生錯誤時回復原狀態
+        setIsAllSelected(!newIsAllSelected)
+      }
+    },
+    [API_BASE_URL, currentUserId]
+  )
 
   // 單一商品勾選/取消勾選
   const handleSelectItem = useCallback(
-    (cartItemIdToToggle, event) => {
+    async (cartItemId, event) => {
       const newIsItemSelected = event.target.checked
-      const updatedItems = cartItems.map((item) =>
-        item.cartItemId === cartItemIdToToggle
-          ? { ...item, isSelected: newIsItemSelected }
-          : item
-      )
-      setCartItems(updatedItems)
-      setIsAllSelected(
-        updatedItems.length > 0 && updatedItems.every((item) => item.isSelected)
-      )
+
+      try {
+        // 呼叫後端 API 更新單個商品的勾選狀態
+        const response = await fetch(
+          `${API_BASE_URL}/cart/api/items/${cartItemId}/select`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              isSelected: newIsItemSelected,
+            }),
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error('更新勾選狀態失敗')
+        }
+
+        // 更新前端狀態
+        const updatedItems = cartItems.map((item) =>
+          item.cartItemId === cartItemId
+            ? {
+                ...item,
+                isSelected: newIsItemSelected,
+                is_selected: newIsItemSelected,
+              }
+            : item
+        )
+        setCartItems(updatedItems)
+
+        // 更新全選狀態
+        setIsAllSelected(updatedItems.every((item) => item.isSelected))
+      } catch (error) {
+        console.error('更新商品勾選狀態失敗：', error)
+        setError('更新勾選狀態失敗，請稍後再試')
+        // 發生錯誤時回復原狀態
+        setCartItems((prevItems) =>
+          prevItems.map((item) =>
+            item.cartItemId === cartItemId
+              ? {
+                  ...item,
+                  isSelected: !newIsItemSelected,
+                  is_selected: !newIsItemSelected,
+                }
+              : item
+          )
+        )
+      }
     },
-    [cartItems]
+    [API_BASE_URL, cartItems]
   )
+
   const handleDeleteItem = useCallback(
     async (cartItemIdPassed) => {
       if (!cartItemIdPassed) return
@@ -497,7 +583,6 @@ export default function CartPage() {
                 )}
                 {cartItems.map((item) => (
                   //顯示出item的資料
-                  <>
                     <div
                       className="cart-item"
                       key={item.cartItemId || item.productId} // 優先使用 cartItemId
@@ -510,10 +595,11 @@ export default function CartPage() {
                       }}
                     >
                       {/* ✨✨✨ 新增10: 單一商品 Checkbox ✨✨✨ */}
+
                       <input
                         type="checkbox"
-                        className="cart-item__checkbox" // 建議給個 class 加樣式
-                        checked={item.isSelected || false}
+                        className="cart-item__checkbox"
+                        checked={item.isSelected ?? false} // 使用空值合併運算子，確保永遠有布林值
                         onChange={(e) => handleSelectItem(item.cartItemId, e)}
                         disabled={loading}
                         style={{
@@ -614,7 +700,6 @@ export default function CartPage() {
                         {/* 使用 Bootstrap Icon */}
                       </button>
                     </div>
-                  </>
                 ))}
                 {/*{cartItems.length > 0 && ( // 只有購物車有東西才顯示優惠券
                   <div className="coupon-code">

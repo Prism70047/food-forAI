@@ -153,7 +153,7 @@ router.get('/api/:id', async (req, res) => {
 
       // 查這個食譜對應的所有調味料
       const [condimentsRows] = await db.query(
-        'SELECT condiment_id, name, quantity, unit FROM condiments WHERE recipe_id = ? ORDER BY condiment_id ASC',
+        'SELECT condiment_id, name, quantity, unit,product_id FROM condiments WHERE recipe_id = ? ORDER BY condiment_id ASC',
         [recipeId]
       )
       
@@ -209,6 +209,32 @@ router.get('/api/:id', async (req, res) => {
   
       // 將時間格式化之後的資料加進 recipe 裡面
       recipe.comments = commentsWithFormattedDate;
+
+      // 在其他查詢後面加入查詢收藏數據
+const [favoriteRows] = await db.query(
+  `SELECT 
+    COUNT(*) as favorite_count,
+    GROUP_CONCAT(u.username) as favorited_by
+  FROM favorites f
+  JOIN users u ON f.user_id = u.user_id
+  WHERE f.recipe_id = ?`,
+  [recipeId]
+);
+
+// 加進 recipe 裡面
+recipe.favorites = {
+  count: favoriteRows[0].favorite_count,
+  users: favoriteRows[0].favorited_by ? favoriteRows[0].favorited_by.split(',') : []
+};
+
+// 如果有登入用戶，也可以查詢當前用戶是否收藏過
+if (req.my_jwt) {
+  const [userFavorite] = await db.query(
+    'SELECT id FROM favorites WHERE user_id = ? AND recipe_id = ?',
+    [req.my_jwt.id, recipeId]
+  );
+  recipe.is_favorited = userFavorite.length > 0;
+}
   
       res.json({ success: true, data: recipe });
   
@@ -387,6 +413,125 @@ const product_id = ingredients.map((item) => item.product_id);
     }
 });
 
+
+// 獲取食譜按讚狀態和計數
+router.get('/api/likes/:id', async (req, res) => {
+    try {
+        const recipeId = req.params.id;
+
+        // 獲取總按讚數
+        const [likeCount] = await db.query(
+            'SELECT COUNT(*) as total_likes FROM user_feedbacks WHERE recipes_id = ? AND is_like = 1',
+            [recipeId]
+        );
+
+        // 如果有登入用戶，檢查該用戶是否按讚
+        let userLikeStatus = false;
+        if (req.my_jwt) {
+            const [userLike] = await db.query(
+                'SELECT is_like FROM user_feedbacks WHERE recipes_id = ? AND user_id = ?',
+                [recipeId, req.my_jwt.id]
+            );
+            userLikeStatus = userLike.length > 0 ? userLike[0].is_like === 1 : false;
+        }
+
+        res.json({
+            success: true,
+            likeCount: likeCount[0].total_likes,
+            userLiked: userLikeStatus
+        });
+
+    } catch (error) {
+        console.error('獲取按讚狀態失敗:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// 更新食譜按讚狀態
+router.post('/api/likes/id', async (req, res) => {
+    try {
+        // 驗證登入狀態
+        if (!req.my_jwt) {
+            return res.status(401).json({ 
+                success: false, 
+                error: "請先登入才能按讚" 
+            });
+        }
+
+        const recipeId = req.params.id;
+        const userId = req.my_jwt.id;
+        const { isLike } = req.body;
+
+         // 開始資料庫交易
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            // 檢查是否已有評論記錄
+            const [existingFeedback] = await connection.query(
+                'SELECT id, is_like FROM user_feedbacks WHERE recipes_id = ? AND user_id = ?',
+                [recipeId, userId]
+            );
+
+            if (existingFeedback.length > 0) {
+                // 更新現有記錄
+                await connection.query(
+                    'UPDATE user_feedbacks SET is_like = ? WHERE recipes_id = ? AND user_id = ?',
+                    [isLike ? 1 : 0, recipeId, userId]
+                );
+
+                // 如果是從不喜歡變成喜歡，或從喜歡變成不喜歡，需要更新 recipes 表的 like_count
+                if (existingFeedback[0].is_like !== (isLike ? 1 : 0)) {
+                    await connection.query(
+                        'UPDATE recipes SET like_count = like_count + ? WHERE id = ?',
+                        [isLike ? 1 : -1, recipeId]
+                    );
+                }
+            } else {
+                // 創建新記錄
+                await connection.query(
+                    'INSERT INTO user_feedbacks (recipes_id, user_id, is_like, created_at) VALUES (?, ?, ?, NOW())',
+                    [recipeId, userId, isLike ? 1 : 0]
+                );
+
+                // 如果是按讚，更新 recipes 表的 like_count
+                if (isLike) {
+                    await connection.query(
+                        'UPDATE recipes SET like_count = like_count + 1 WHERE id = ?',
+                        [recipeId]
+                    );
+                }
+            }
+
+            // 提交交易
+            await connection.commit();
+
+            // 重新計算按讚總數
+            const [likeCount] = await db.query(
+                'SELECT like_count FROM recipes WHERE id = ?',
+                [recipeId]
+            );
+
+            res.json({
+                success: true,
+                message: isLike ? "已按讚" : "已取消讚",
+                likeCount: likeCount[0].like_count
+            });
+
+        } catch (error) {
+            // 如果出錯，回滾交易
+            await connection.rollback();
+            throw error;
+        } finally {
+            // 釋放連接
+            connection.release();
+        }
+
+    } catch (error) {
+        console.error('更新按讚狀態失敗:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 // 新增食譜
 router.post('/api',async(req,res)=>{
     const { title, description, cook_time, servings, user_id } = req.body;

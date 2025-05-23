@@ -9,6 +9,8 @@ import {
   FaChevronDown,
   FaCalendarAlt,
   FaLock,
+  FaStarHalfAlt,
+  FaRegHandPointUp,
 } from 'react-icons/fa'
 import {
   FaCakeCandles,
@@ -18,6 +20,7 @@ import {
   FaCartPlus,
   FaUser,
   FaXTwitter,
+  FaStar,
 } from 'react-icons/fa6'
 import { BiSolidBowlRice, BiLike } from 'react-icons/bi'
 import { LuDessert, LuSalad } from 'react-icons/lu'
@@ -29,14 +32,25 @@ import {
   MdOutlineRamenDining,
 } from 'react-icons/md'
 import { BsBookmarkPlus, BsBookmarkStarFill } from 'react-icons/bs'
-import { GrPrevious } from 'react-icons/gr'
+import { GrPrevious, GrArticle } from 'react-icons/gr'
 import { GiKitchenScale } from 'react-icons/gi'
-import { PiJarLabelBold } from 'react-icons/pi'
+import { PiJarLabelBold, PiHandTapBold } from 'react-icons/pi'
 import { HiViewGridAdd, HiOutlineViewGridAdd } from 'react-icons/hi'
-import { IoIosAddCircle, IoIosListBox } from 'react-icons/io'
-import { IoIosArrowBack } from 'react-icons/io'
-
+import {
+  IoIosAddCircle,
+  IoIosListBox,
+  IoIosArrowForward,
+  IoIosArrowBack,
+} from 'react-icons/io'
+import { RiCustomerService2Fill } from 'react-icons/ri'
+import { LuStar } from 'react-icons/lu'
+import { AiOutlineStar } from 'react-icons/ai'
 export {
+  GrArticle,
+  RiCustomerService2Fill,
+  AiOutlineStar,
+  FaStar,
+  FaStarHalfAlt,
   GrPrevious,
   FaSearch,
   FaCakeCandles,
@@ -64,7 +78,10 @@ export {
   BiLike,
   TbBowlSpoon,
   IoIosAddCircle,
+  IoIosArrowForward,
   TbHandFinger,
+  FaRegHandPointUp,
+  PiHandTapBold,
   IoIosArrowBack,
   FaGoogle,
   FaEye,
@@ -75,4 +92,5 @@ export {
   IoIosListBox,
   HiViewGridAdd,
   HiOutlineViewGridAdd,
+  LuStar,
 }

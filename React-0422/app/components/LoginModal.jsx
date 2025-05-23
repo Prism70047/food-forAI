@@ -3,6 +3,9 @@
 
 import { Modal, Button } from 'react-bootstrap'
 import { useState } from 'react'
+import React from 'react'
+import Swal from 'sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
 
 export default function LoginModal({
   message = '需要登入才能使用此功能喔！',
@@ -10,24 +13,28 @@ export default function LoginModal({
   onHide,
   onNavigateToLogin,
 }) {
-  return (
-    <Modal show={show} onHide={onHide} centered size="lg">
-      <Modal.Header closeButton>
-        <Modal.Title>請先登入</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <p>{message}</p>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
-          關閉
-        </Button>
-        <Button variant="primary" onClick={onNavigateToLogin}>
-          前往登入
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  )
+  React.useEffect(() => {
+    if (show) {
+      Swal.fire({
+        title: '請先登入',
+        text: message,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonColor: '#0d6efd', // Bootstrap primary color
+        cancelButtonColor: '#6c757d', // Bootstrap secondary color
+        confirmButtonText: '前往登入',
+        cancelButtonText: '關閉',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          onNavigateToLogin()
+        } else {
+          onHide()
+        }
+      })
+    }
+  }, [show, message, onHide, onNavigateToLogin])
+
+  return null
 }
 
 // 首先在需要使用這個組件的page.jsx最上面寫上

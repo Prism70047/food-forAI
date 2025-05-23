@@ -7,6 +7,7 @@ import Link from 'next/link'
 import styles from '@/app/src/styles/page-styles/RestaurantList.module.scss'
 import RestaurantCard from '../components/RestaurantCard'
 import { API_SERVER } from '@/config/api-path'
+import Bread from '@/app/components/Bread'
 
 export default function RestaurantsPage() {
   // 在 App Router 中使用 useParams 獲取路由參數
@@ -70,94 +71,97 @@ export default function RestaurantsPage() {
   // if (!id) return <div>錯誤: 找不到餐廳ID</div>
 
   return (
-    <div className={styles.pageContainer}>
-      {/* <div>{JSON.stringify(data)}</div> */}
-      <div className={styles.heroSection}>
-        <div className={styles.heroContentWrapper}>
-          <div className={styles.heroContent}>
-            <h1 className={styles.heroTitle}>精選餐廳推薦</h1>
-            <p className={styles.heroDescription}>
-              探索台北最具特色的美食餐廳，從傳統小吃到高級料理，滿足您的味蕾享受
-            </p>
+    <>
+      <Bread items={[{ text: '首頁', href: '/' }, { text: '餐廳列表' }]} />
+      <div className={styles.pageContainer}>
+        {/* <div>{JSON.stringify(data)}</div> */}
+        <div className={styles.heroSection}>
+          <div className={styles.heroContentWrapper}>
+            <div className={styles.heroContent}>
+              <h1 className={styles.heroTitle}>精選餐廳推薦</h1>
+              <p className={styles.heroDescription}>
+                探索台北最具特色的美食餐廳，從傳統小吃到高級料理，滿足您的味蕾享受
+              </p>
+            </div>
+            <div className={styles.searchBar}>
+              <input
+                type="text"
+                placeholder="搜尋餐廳名稱或描述..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setActivePage(1)
+                }}
+                className={styles.searchInput}
+              />
+              <button
+                className={styles.searchButton}
+                onClick={() => setSearchTerm(searchTerm)}
+              >
+                搜尋
+              </button>
+            </div>
           </div>
-          <div className={styles.searchBar}>
-            <input
-              type="text"
-              placeholder="搜尋餐廳名稱或描述..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setActivePage(1)
-              }}
-              className={styles.searchInput}
+
+          <div className={styles.heroImageContainer}>
+            <img
+              src="/images/restaurant/r01.webp"
+              className={styles.heroImage}
+              alt="餐廳美食"
             />
-            <button
-              className={styles.searchButton}
-              onClick={() => setSearchTerm(searchTerm)}
-            >
-              搜尋
-            </button>
           </div>
         </div>
 
-        <div className={styles.heroImageContainer}>
+        <div className={styles.restaurantListSection}>
+          <div className={styles.sectionTitle}>精選餐廳推薦</div>
+          {/* // 將原本的 restaurants.map 改為 filteredRestaurants.map */}
+          <div className={styles.restaurantList}>
+            {filteredRestaurants.length > 0 ? (
+              filteredRestaurants.map((restaurant) => (
+                <RestaurantCard
+                  key={restaurant.id}
+                  id={restaurant.id}
+                  image={restaurant.image}
+                  name={restaurant.name}
+                  description={restaurant.description}
+                  badge={restaurant.badge}
+                />
+              ))
+            ) : (
+              <div className={styles.noResults}>沒有找到符合條件的餐廳</div>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.pagination}>
           <img
-            src="/images/restaurant/r01.webp"
-            className={styles.heroImage}
-            alt="餐廳美食"
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/53f72b1cdd510a8160b76260d08cccc39de9e6a2?placeholderIfAbsent=true"
+            className={styles.paginationArrow}
+            alt="上一頁"
+            onClick={() => handlePageChange(Math.max(activePage - 1, 1))}
+          />
+
+          {Array.from({ length: filteredTotalPages }, (_, index) => (
+            <div key={index + 1} className={styles.pageNumberContainer}>
+              <div
+                className={`${styles.pageNumber} ${activePage === index + 1 ? styles.pageNumberActive : ''}`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </div>
+            </div>
+          ))}
+
+          <img
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/48cafdb4ef4bb734d63a486bf58abbe94c28b5d3?placeholderIfAbsent=true"
+            className={styles.paginationArrow}
+            alt="下一頁"
+            onClick={() =>
+              handlePageChange(Math.min(activePage + 1, filteredTotalPages))
+            }
           />
         </div>
       </div>
-
-      <div className={styles.restaurantListSection}>
-        <div className={styles.sectionTitle}>精選餐廳推薦</div>
-        {/* // 將原本的 restaurants.map 改為 filteredRestaurants.map */}
-        <div className={styles.restaurantList}>
-          {filteredRestaurants.length > 0 ? (
-            filteredRestaurants.map((restaurant) => (
-              <RestaurantCard
-                key={restaurant.id}
-                id={restaurant.id}
-                image={restaurant.image}
-                name={restaurant.name}
-                description={restaurant.description}
-                badge={restaurant.badge}
-              />
-            ))
-          ) : (
-            <div className={styles.noResults}>沒有找到符合條件的餐廳</div>
-          )}
-        </div>
-      </div>
-
-      <div className={styles.pagination}>
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/53f72b1cdd510a8160b76260d08cccc39de9e6a2?placeholderIfAbsent=true"
-          className={styles.paginationArrow}
-          alt="上一頁"
-          onClick={() => handlePageChange(Math.max(activePage - 1, 1))}
-        />
-
-        {Array.from({ length: filteredTotalPages }, (_, index) => (
-          <div key={index + 1} className={styles.pageNumberContainer}>
-            <div
-              className={`${styles.pageNumber} ${activePage === index + 1 ? styles.pageNumberActive : ''}`}
-              onClick={() => handlePageChange(index + 1)}
-            >
-              {index + 1}
-            </div>
-          </div>
-        ))}
-
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/48cafdb4ef4bb734d63a486bf58abbe94c28b5d3?placeholderIfAbsent=true"
-          className={styles.paginationArrow}
-          alt="下一頁"
-          onClick={() =>
-            handlePageChange(Math.min(activePage + 1, filteredTotalPages))
-          }
-        />
-      </div>
-    </div>
+    </>
   )
 }

@@ -7,7 +7,7 @@
   position: relative;
   overflow: hidden;
   flex-shrink: 1;
-  height: 320px;
+  // height: 320px;
   // width: calc((100% - 10%) / 3);
   transition:
     transform 0.3s ease,
@@ -54,7 +54,7 @@
       -webkit-box-orient: vertical;
     }
   }
-  button {
+  .wishlistButton {
     color: #fff;
     background: $color-accent;
     border-radius: 9rem;
@@ -67,5 +67,16 @@
     top: 14px;
     height: 55px;
     width: 55px;
+    transition: all 0.3s ease;
+    &:hover {
+      background-color: $color-hover;
+    }
+    &:active {
+      transform: scale(0.5); // ✅ 點擊時縮小一點
+    }
+    &.active {
+      background-color: $color-background; // ✅ 收藏後的底色
+      color: $color-accent; // 可選：改變文字或 icon 顏色
+    }
   }
 }

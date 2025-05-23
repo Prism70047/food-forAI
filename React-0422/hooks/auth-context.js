@@ -70,10 +70,12 @@ export function AuthContextProvider({ children }) {
 
   // 取得 Authorization 檔頭
   const getAuthHeader = () => {
-    if (!auth.token) return {}
-    return {
-      Authorization: `Bearer ${auth.token}`,
+    if (auth?.token) {
+      return {
+        Authorization: `Bearer ${auth.token}`,
+      }
     }
+    return {}
   }
 
   useEffect(() => {

@@ -16,8 +16,10 @@ import { FaMapMarkerAlt } from 'react-icons/fa'
 import { FaPhoneAlt } from 'react-icons/fa'
 import { FaRegClock } from 'react-icons/fa6'
 import { Modal, Button } from 'react-bootstrap'
+import Bread from '@/app/components/Bread'
 // import MapComponent from '../app/restaurants/components/MapComponent.jsx'
 import MapComponent from '../components/MapComponent.jsx'
+import BackgroundColorChanger from '@/app/use-effect/page'
 
 // Mock data for restaurant details
 
@@ -84,15 +86,16 @@ export default function RestaurantDetailPage() {
       <div className={styles.container}>
         {/* 測試一下有沒有拿到JSON資料。如果有拿掉的話可以先註解掉 */}
         {/* <div>{JSON.stringify(restaurant)}</div> */}
+        <Bread
+          style={{ BackgroundColor: 'red' }}
+          items={[
+            { text: '首頁', href: '/' },
+            { text: '餐廳列表', href: '/restaurants' },
+            { text: '餐廳介紹' },
+          ]}
+        />
         <div className={styles.content}>
           <div className={styles.breadcrumb}>
-            <div className={styles.breadcrumbNav}>
-              <div>美食推薦</div>
-              <div>/</div>
-              <Link href="/restaurants">餐廳列表</Link>
-              <div>/</div>
-              <div>餐廳介紹</div>
-            </div>
             <div className={styles.mainContent}>
               <h1 className={styles.restaurantTitle}>
                 隱身巷弄的美味秘境：{restaurant.name}

@@ -5,6 +5,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  margin-top: 60px;
 }
 
 /* Filter Section */
@@ -13,7 +14,7 @@
   max-width: 1280px;
   display: flex;
   justify-content: space-between;
-  margin: 50px auto 20px auto;
+  margin: 20px auto ;
   padding: 10px;
   background-color: $color-background-error;
   border-radius: 30px;
@@ -48,6 +49,125 @@
   }
   @media (max-width: 991px) {
     display: none;
+  }
+
+  button {
+    position: relative;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+
+    h3 {
+      color: $color-primary;
+      border-radius: 30px;
+      background-color: $color-background;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    // 修改：活躍狀態樣式
+    &.active {
+      h3 {
+        background-color: $color-primary;
+        color: $color-background;
+        font-weight: bold;
+        // 新增底部指示條
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 3px;
+        background-color: $color-primary;
+        border-radius: 3px;
+      }
+    }
+
+    &:hover:not(.active) h3 {
+      background-color: lighten($color-primary, 35%);
+      color: $color-primary;
+    }
+  }
+
+  .categoryButton {
+    position: relative;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+
+    &.homeButton {
+      h3 {
+        // 導覽列按鈕的預設樣式
+        background-color: $color-background;
+        color: $color-primary;
+        
+        &:hover {
+          background-color: lighten($color-primary, 35%);
+        }
+      }
+
+      &.active h3 {
+        // 導覽列按鈕的活躍樣式
+        background-color: $color-background;
+        color: $color-primary;
+        box-shadow: none;
+      }
+
+      &::after {
+        // 移除導覽列按鈕的底部指示條
+        display: none;
+      }
+    }
+
+    &:not(.homeButton) {
+      // 其他分類按鈕的樣式
+      &.active {
+        h3 {
+          background-color: $color-primary;
+          color: $color-background;
+          font-weight: bold;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -5px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 80%;
+          height: 3px;
+          background-color: $color-primary;
+          border-radius: 3px;
+        }
+      }
+    }
+
+    h3 {
+      color: $color-primary;
+      border-radius: 30px;
+      background-color: $color-background;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    &:hover:not(.active) h3 {
+      background-color: lighten($color-primary, 35%);
+      color: $color-primary;
+    }
   }
 }
 

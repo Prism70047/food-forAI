@@ -47,21 +47,19 @@
 
 .breadcrumbNav {
   display: flex;
-  padding: 19px 20px 21px;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-  font-family:
-    Roboto,
-    -apple-system,
-    Roboto,
-    Helvetica,
-    sans-serif;
-  font-size: 14px;
+  padding-top: 6px;
+  padding-left: 120px;
+}
+.breadcrumbNav a {
   color: #666;
-  font-weight: 400;
-  white-space: nowrap;
-  justify-content: flex-start;
-  flex-wrap: wrap;
+  text-decoration: none;
+}
+
+.breadcrumbNav a:hover {
+  color: #000;
+  text-decoration: underline;
 }
 
 @media (max-width: 991px) {

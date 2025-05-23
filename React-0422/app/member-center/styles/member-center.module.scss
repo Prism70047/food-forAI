@@ -218,8 +218,8 @@
 }
 
 .profileText {
-  width: 143px;
   max-width: 100%;
+  margin-bottom: 8px;
 
   @media (max-width: 991px) {
     white-space: initial;
@@ -253,7 +253,6 @@
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.42px;
-  margin-top: 8px;
 }
 
 .profileButtons {
@@ -311,8 +310,8 @@
     sans-serif;
   font-size: 16px;
   color: #423c3a;
-  white-space: nowrap;
-  justify-content: start;
+  white-space: wrap;
+  justify-content: center;
 
   @media (max-width: 991px) {
     max-width: 100%;

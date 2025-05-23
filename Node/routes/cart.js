@@ -44,6 +44,7 @@ router.get('/api/:userId', async (req, res) => {
       const [cartProductRows] = await db.query(
         `SELECT
           c.cart_id AS cart_item_id,   -- 購物車項目本身的 ID (假設 carts 表主鍵是 id)
+          c.is_selected,
           u.user_id,
           p.id AS product_id,
           p.name AS product_name,
@@ -54,7 +55,7 @@ router.get('/api/:userId', async (req, res) => {
         JOIN users u ON c.user_id = u.user_id
         JOIN food_products p ON c.product_id = p.id
         WHERE u.user_id = ?
-        ORDER BY c.added_time DESC;`, // 假設 carts 表有 added_time 用來排序
+        ORDER BY c.updated_at DESC;`, // 假設 carts 表有 updated_at 用來排序
         [userId]
       );
 
@@ -67,6 +68,7 @@ router.get('/api/:userId', async (req, res) => {
         productId: item.product_id,
         name: item.product_name,
         price: parseFloat(item.product_price) || 0, // 轉成數字，並給預設值
+        isSelected: item.is_selected,
         imageUrl: item.product_image_url || '/images/default_product.png', // 預設圖片
         quantity: item.quantity,
       }));
@@ -99,11 +101,21 @@ router.get('/api', async (req, res) => {
 // ------------------------------------------------------------------------------------
 // POST - 新增商品到指定使用者的購物車
 // API 路徑: /cart/api/:userId/items
+// 05/20 這個API的路徑我改一下名稱，把/:userID先拿掉
 // ------------------------------------------------------------------------------------
-router.post('/api/:userId/items', async (req, res) => {
+router.post('/api/items', async (req, res) => {
     try {
-      const userIdString = req.params.userId;
-      const userId = parseInt(userIdString, 10);
+      // const userIdString = req.params.userId;
+      // const userId = parseInt(userIdString, 10);
+
+       // 驗證是否已通過 JWT 驗證
+    if (!req.my_jwt) {
+        return res.status(401).json({ success: false, error: "Unauthorized: Missing or invalid token" });
+    }
+
+    const uId = req.my_jwt.id; // 從解碼的 token 中取得 userId
+    const userId = parseInt(uId, 10);
+
       // ✨✨✨ 把 quantity 重新命名成 quantityToAdd 更清楚 ✨✨✨
       const { productId, quantityToAdd } = req.body; // ... (productId 驗證) ...
       const validProductId = parseInt(productId, 10);
@@ -233,7 +245,7 @@ router.put('/api/items/:cartItemId', async (req, res) => {
 
       // --- 更新購物車項目的數量 ---
       const [result] = await db.query(
-        "UPDATE carts SET quantity = ?, added_time = NOW() WHERE cart_id = ?",
+        "UPDATE carts SET quantity = ?, updated_at = NOW() WHERE cart_id = ?",
         [newQuantity, cartItemId]
       );
 
@@ -328,6 +340,105 @@ router.delete('/api/:userId/clear', async (req, res) => {
             success: false,
             error: '糟糕！購物車的「一鍵清空」按鈕好像被小怪獸吃掉了～👾',
             details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// ------------------------------------------------------------------------------------
+// PUT - 更新購物車項目的勾選狀態
+// API 路徑: /cart/api/items/:cartItemId/select
+// ------------------------------------------------------------------------------------
+router.put('/api/items/:cartItemId/select', async (req, res) => {
+    try {
+        const cartItemId = parseInt(req.params.cartItemId, 10);
+        const { isSelected } = req.body;
+
+        // 驗證輸入
+        if (isNaN(cartItemId) || cartItemId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: '購物車項目 ID 必須是正整數'
+            });
+        }
+
+        if (typeof isSelected !== 'boolean') {
+            return res.status(400).json({
+                success: false,
+                message: 'isSelected 必須是布林值'
+            });
+        }
+
+        // 更新資料庫中的勾選狀態
+        const [result] = await db.query(
+            "UPDATE carts SET is_selected = ?, updated_at = NOW() WHERE cart_id = ?",
+            [isSelected, cartItemId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: '找不到指定的購物車項目'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `購物車項目 ${cartItemId} 的勾選狀態已更新`,
+            isSelected: isSelected
+        });
+
+    } catch (error) {
+        console.error('更新購物車項目勾選狀態時發生錯誤:', error);
+        res.status(500).json({
+            success: false,
+            message: '更新勾選狀態時發生錯誤',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
+
+// ------------------------------------------------------------------------------------
+// PUT - 更新使用者購物車所有項目的勾選狀態
+// API 路徑: /cart/api/items/select-all
+// ------------------------------------------------------------------------------------
+router.put('/api/items/select-all', async (req, res) => {
+    try {
+        // 從 JWT 取得使用者 ID
+        if (!req.my_jwt) {
+            return res.status(401).json({
+                success: false,
+                message: '未授權的訪問'
+            });
+        }
+        const userId = req.my_jwt.id;
+        const { isSelected } = req.body;
+
+        // 驗證輸入
+        if (typeof isSelected !== 'boolean') {
+            return res.status(400).json({
+                success: false,
+                message: 'isSelected 必須是布林值'
+            });
+        }
+
+        // 更新該使用者購物車中所有項目的勾選狀態
+        const [result] = await db.query(
+            "UPDATE carts SET is_selected = ?, updated_at = NOW() WHERE user_id = ?",
+            [isSelected, userId]
+        );
+
+        res.json({
+            success: true,
+            message: `已${isSelected ? '全選' : '取消全選'}購物車項目`,
+            affectedItems: result.affectedRows
+        });
+
+    } catch (error) {
+        console.error('更新購物車全選狀態時發生錯誤:', error);
+        res.status(500).json({
+            success: false,
+            message: '更新全選狀態時發生錯誤',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });

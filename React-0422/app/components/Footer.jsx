@@ -11,7 +11,7 @@ const Footer = () => {
       <div className={styles.footerContent}>
         <span>
           <h3>謝謝您來逛逛我們的網站！有您的瀏覽，我們超開心 🎉</h3>
-          <h3>如果您願意也歡迎留下回饋，讓我們變得更棒、更貼近您的期待！</h3>
+          <p>如果您願意也歡迎留下回饋，讓我們變得更棒、更貼近您的期待！</p>
           <div>
             <textarea
               type="text"

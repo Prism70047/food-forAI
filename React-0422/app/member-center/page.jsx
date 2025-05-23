@@ -12,28 +12,34 @@ import { useAuth } from '@/hooks/auth-context'
 import { useRouter } from 'next/navigation'
 
 export default function MemberCenter() {
-  const { auth, authInit } = useAuth() // 從 context 取得 auth 和 authInit 狀態
+  const { auth, authInit } = useAuth() // 從 Auth Context 取得登入狀態與初始化狀態
   const router = useRouter()
 
   // useState Hook 來管理目前要顯示的內容，預設顯示 'profile'
   const [activeContent, setActiveContent] = useState('profile')
 
+  // --- 偵錯用 ---
+  useEffect(() => {
+    console.log('[MemberCenter] Auth State:', auth)
+    console.log('[MemberCenter] Auth Init:', authInit)
+  }, [auth, authInit])
+  // --- 偵錯用結束 ---
+
   useEffect(() => {
     // 等待 auth 初始化完成後才進行檢查
     if (authInit) {
+      // 如果未登入 (auth.user_id 不存在或無效)，則導向到登入頁面
       if (!auth.user_id) {
-        // 檢查 auth.user_id 是否存在或為有效值 (例如不為 0 或 null)
-        router.push('/login') // 如果未登入，導向到登入頁
+        router.push('/login')
       }
     }
   }, [auth, authInit, router])
 
-  // 如果 authInit 為 false，表示還在從 localStorage 讀取登入狀態
-  // 或者 auth.user_id 不存在 (未登入)
+  // 如果 Auth Context 尚未初始化或使用者未登入，顯示提示訊息或載入狀態
   if (!authInit || !auth.user_id) {
     return (
       <div className={styles.pageContent}>
-        <p className={styles.detailContent}>跳轉至登入頁面...</p>
+        <p className={styles.detailContent}>檢查登入狀態或跳轉至登入頁面...</p>
       </div>
     )
   }
@@ -57,12 +63,12 @@ export default function MemberCenter() {
   return (
     <>
       <div className={styles.pageContent}>
-        {/* 將 activeContent 和 setActiveContent 傳遞給 Sidebar */}
+        {/* 側邊欄，傳遞目前選中的內容和設定選中內容的方法 */}
         <Sidebar
           activeContent={activeContent}
           setActiveContent={setActiveContent}
         />
-        {/* 呼叫 renderContent 來顯示對應的內容 */}
+        {/* 內容區域，根據 renderContent 的結果顯示 */}
         <div className={styles.contentArea}>{renderContent()}</div>
       </div>
     </>
