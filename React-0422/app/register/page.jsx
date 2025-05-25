@@ -97,7 +97,7 @@ export default function RegisterPage() {
         else if (value.length > 50) error = '姓名不可超過50個字'
         break
       case 'username':
-        if (!value) errorMessage = '請輸入使用者名稱'
+        if (!value) error = '請輸入使用者名稱'
         else if (value.length > 10) error = '使用者名稱不可超過10個字'
         break
       case 'birthday':

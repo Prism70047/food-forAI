@@ -79,28 +79,31 @@ app.use(
   })
 );
 
-// 自訂的middlewares
+// --- JWT Token 處理 ---
 app.use((req, res, next) => {
   res.locals.title = "網頁";
   res.locals.pageName = "";
-  res.locals.session = req.session; //讓ejs可以取得session
+  res.locals.session = req.session; // 讓ejs可以取得session
   res.locals.originalUrl = req.originalUrl;
 
-  // 透過這邊的中介(middleware)處理 JWT (拿Token)
-  const auth = req.get("Authorization");
-  console.log({ auth });
-  if (auth && auth.indexOf("Bearer ") === 0) {
-    const token = auth.slice(7); // 去掉 'Bearer '
+  // 處理 JWT 取得 Token
+  const authHeader = req.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
     try {
+      // 將解碼後的 token 存到 req.my_jwt 供後續路由使用
       req.my_jwt = jwt.verify(token, process.env.JWT_KEY);
-    } catch (ex) {}
+    } catch (ex) {
+      // Token 無效或過期，req.my_jwt 會是 undefined
+      console.log("JWT 驗證失敗:", ex.message);
+    }
   }
-
   next();
 });
+// --- JWT Token 處理結束 ---
 
 // Top-level middlewares
-app.use(express.json());  // <-- 處理 JSON 請求 body
+app.use(express.json()); // <-- 處理 JSON 請求 body
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // <-- 處理 JSON 請求 body
 // 連到食譜
@@ -115,9 +118,9 @@ app.use("/restaurants", restaurantsRouter);
 // 連到購物車
 app.use("/cart", cartRouter);
 // 連到聯絡我們的
-app.use('/contact', contactRouter);
+app.use("/contact", contactRouter);
 // 連到訂單頁面
-app.use('/api/orders', orderRouter);
+app.use("/api/orders", orderRouter);
 app.use("/contact", contactRouter);
 // 連到會員註冊的
 app.use("/register", registerRouter);
@@ -146,6 +149,7 @@ app.get("/try-qs", (req, res) => {
 app.get("/try-post-form", (req, res) => {
   res.render("try-post-form");
 });
+
 app.post("/try-post-form", (req, res) => {
   res.render("try-post-form", req.body);
 });
@@ -160,6 +164,7 @@ app.post("/try-upload", upload.single("avatar"), (req, res) => {
     body: req.body,
   });
 });
+
 app.post("/try-uploads", upload.array("photos"), (req, res) => {
   res.json(req.files);
 });
@@ -167,6 +172,7 @@ app.post("/try-uploads", upload.array("photos"), (req, res) => {
 app.get("/my-params1/abc", (req, res) => {
   res.json({ page: "abc" });
 });
+
 // 動態路由
 app.get("/my-params1/:action?/:id?", (req, res) => {
   res.json(req.params);

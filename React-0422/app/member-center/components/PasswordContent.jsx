@@ -4,107 +4,57 @@ import { useState } from 'react'
 import styles from '../styles/password-content.module.scss'
 import { FaEye, FaEyeSlash } from '../../icons/icons'
 import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { useAuth } from '@/hooks/auth-context'
 
 const PasswordContent = () => {
+  // 從 Auth Context 取得認證資訊
+  const { auth, getAuthHeader } = useAuth()
+
   // 密碼狀態
   const [passwords, setPasswords] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
+    confirmNewPassword: '',
   })
 
   // 密碼顯示/隱藏狀態
   const [showPasswords, setShowPasswords] = useState({
     currentPassword: false,
     newPassword: false,
-    confirmPassword: false,
+    confirmNewPassword: false,
   })
 
   // 錯誤訊息狀態
   const [errors, setErrors] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
+    confirmNewPassword: '',
   })
 
+  // 提交成功訊息狀態 (後端回傳)
+  const [successMessage, setSuccessMessage] = useState('')
+
+  // 提交失敗訊息狀態 (後端回傳)
+  const [failedMessage, setFailedMessage] = useState('')
+
   // 驗證密碼格式
-  const validatePassword = (password) => {
+  const validatePasswordFormat = (password) => {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$/
     return passwordRegex.test(password)
   }
 
-  // 驗證欄位
-  const validateField = (name, value) => {
-    let error = ''
-
-    switch (name) {
-      case 'currentPassword':
-        if (!value) {
-          error = '請輸入目前密碼'
-        } else if (value.length < 8) {
-          // 假設密碼最小長度為 8
-          error = '密碼長度不正確'
-        } else {
-          // TODO:改為透過API驗證目前密碼是否正確 (目前是假資料)
-          if (value !== 'Test1234') {
-            error = '目前密碼輸入錯誤'
-          }
-        }
-        break
-
-      case 'newPassword':
-        if (!value) {
-          error = '請輸入新密碼'
-        } else if (!validatePassword(value)) {
-          error = '密碼需包含大小寫英文字母及數字，長度8-20碼'
-        }
-        break
-
-      case 'confirmPassword':
-        if (!value) {
-          error = '請再次輸入新密碼'
-        } else if (value !== passwords.newPassword) {
-          error = '密碼不一致'
-        }
-        break
-    }
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }))
-
-    return !error
-  }
-
-  // 驗證目前密碼的函數
-  const verifyCurrentPassword = async (password) => {
-    try {
-      // TODO:呼叫後端 API 進行密碼驗證
-      // const response = await fetch('/api/verify-password', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ password }),
-      // })
-      // return response.ok
-
-      // 範例：假設密碼是 "Test1234"
-      return password === 'Test1234'
-    } catch (error) {
-      console.error('密碼驗證失敗：', error)
-      return false
-    }
-  }
-
-  // 處理密碼變更
+  // 處理密碼輸入變更
   const handlePasswordChange = (e) => {
     const { name, value } = e.target
     setPasswords((prev) => ({
       ...prev,
       [name]: value,
     }))
+    // 清除該欄位的錯誤提示
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }))
+    }
   }
 
   // 切換密碼顯示/隱藏
@@ -115,69 +65,149 @@ const PasswordContent = () => {
     }))
   }
 
+  // 驗證欄位 (提交時執行)
+  const validateFields = () => {
+    let isValid = true
+    const newErrors = {
+      currentPassword: '',
+      newPassword: '',
+      confirmNewPassword: '',
+    }
+
+    if (!passwords.currentPassword) {
+      newErrors.currentPassword = '請輸入目前密碼'
+      isValid = false
+    }
+
+    if (!passwords.newPassword) {
+      newErrors.newPassword = '請輸入新密碼'
+      isValid = false
+    } else if (!validatePasswordFormat(passwords.newPassword)) {
+      newErrors.newPassword = '密碼需包含大小寫英文字母及數字，長度8-20碼'
+      isValid = false
+    }
+
+    if (!passwords.confirmNewPassword) {
+      newErrors.confirmNewPassword = '請再次輸入新密碼'
+      isValid = false
+    } else if (passwords.newPassword !== passwords.confirmNewPassword) {
+      newErrors.confirmNewPassword = '新密碼與確認密碼不一致'
+      isValid = false
+    }
+
+    setErrors(newErrors)
+    return isValid
+  }
+
+  // 驗證單一欄位 (失去焦點時執行)
+  const validateField = (fieldName, value) => {
+    const newErrors = { ...errors }
+
+    switch (fieldName) {
+      case 'currentPassword':
+        if (!value) {
+          newErrors[fieldName] = '請輸入目前密碼'
+        } else {
+          newErrors[fieldName] = ''
+        }
+        break
+
+      case 'newPassword':
+        if (!value) {
+          newErrors[fieldName] = '請輸入新密碼'
+        } else if (!validatePasswordFormat(value)) {
+          newErrors[fieldName] = '密碼需包含大小寫英文字母及數字，長度8-20碼'
+        } else {
+          newErrors[fieldName] = ''
+        }
+        break
+
+      case 'confirmNewPassword':
+        if (!value) {
+          newErrors[fieldName] = '請再次輸入新密碼'
+        } else if (value !== passwords.newPassword) {
+          newErrors[fieldName] = '新密碼與確認密碼不一致'
+        } else {
+          newErrors[fieldName] = ''
+        }
+        break
+    }
+
+    setErrors(newErrors)
+  }
+
   // 提交表單
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // 驗證所有欄位
-    const isCurrentPasswordValid = validateField(
-      'currentPassword',
-      passwords.currentPassword
-    )
-    const isNewPasswordValid = validateField(
-      'newPassword',
-      passwords.newPassword
-    )
-    const isConfirmPasswordValid = validateField(
-      'confirmPassword',
-      passwords.confirmPassword
-    )
+    if (!validateFields()) {
+      toast.error('請檢查所有欄位是否填寫正確！')
+      return
+    }
 
-    if (
-      !isCurrentPasswordValid ||
-      !isNewPasswordValid ||
-      !isConfirmPasswordValid
-    ) {
+    if (!auth.token || !auth.user_id) {
+      toast.error('您尚未登入，請先登入！')
+      // 考慮導向登入頁面
       return
     }
 
     try {
-      // 先驗證目前密碼是否正確
-      const isCurrentPasswordCorrect = await verifyCurrentPassword(
-        passwords.currentPassword
+      const response = await fetch(
+        `${NEXT_PUBLIC_API_URL}/users/api/change-password`, // 後端 API 路徑
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(), // 帶上 JWT token
+          },
+          body: JSON.stringify({
+            userId: auth.user_id, // 從 context 取得 user_id
+            currentPassword: passwords.currentPassword,
+            newPassword: passwords.newPassword,
+          }),
+        }
       )
 
-      if (!isCurrentPasswordCorrect) {
-        setErrors((prev) => ({
-          ...prev,
-          currentPassword: '目前密碼輸入錯誤',
-        }))
-        return
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setSuccessMessage('密碼更新成功！下次登入時請使用新密碼')
+        setFailedMessage('') // 清除錯誤訊息
+        // 清空表單
+        setPasswords({
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        })
+        setErrors({
+          currentPassword: '',
+          newPassword: '',
+          confirmNewPassword: '',
+        })
+        // 3秒後清除成功訊息
+        setTimeout(() => {
+          setSuccessMessage('')
+        }, 3000)
+      } else {
+        // 處理後端回傳的特定錯誤訊息
+        if (result.errors) {
+          setErrors((prevErrors) => ({ ...prevErrors, ...result.errors }))
+          return
+        }
+        // failedMessage 顯示來自後端錯誤時的訊息
+        setFailedMessage('密碼更新失敗，請稍後再試 (API error)')
+        setSuccessMessage('') // 清除成功訊息
       }
-
-      // 如果目前密碼正確，才執行更新密碼
-      // const response = await updatePassword(passwords)
-      toast.success('密碼更新成功')
-
-      // 清空表單
-      setPasswords({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      })
-      setErrors({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      })
     } catch (error) {
-      toast.error('密碼更新失敗')
+      setFailedMessage('密碼更新失敗，請檢查網路連線 (Failed to fetch)')
+      setSuccessMessage('') // 清除成功訊息
     }
   }
 
   return (
     <div className={styles.passwordContent}>
       <form onSubmit={handleSubmit} className={styles.form} noValidate>
+        {/* 目前密碼 */}
         <div className={styles.formGroup}>
           <label htmlFor="currentPassword" className={styles.label}>
             目前密碼 *
@@ -206,6 +236,7 @@ const PasswordContent = () => {
           )}
         </div>
 
+        {/* 輸入新的密碼 */}
         <div className={styles.formGroup}>
           <label htmlFor="newPassword" className={styles.label}>
             輸入新的密碼 *
@@ -214,11 +245,13 @@ const PasswordContent = () => {
             <input
               type={showPasswords.newPassword ? 'text' : 'password'}
               name="newPassword"
+              id="newPassword"
               value={passwords.newPassword}
               onChange={handlePasswordChange}
               onBlur={(e) => validateField('newPassword', e.target.value)}
               placeholder="需包含大小寫英文字母及數字，長度8-20碼"
               className={`${errors.newPassword ? styles.errorInput : ''}`}
+              required
             />
             <button
               type="button"
@@ -233,36 +266,53 @@ const PasswordContent = () => {
           )}
         </div>
 
+        {/* 再次輸入新的密碼 */}
         <div className={styles.formGroup}>
           <label htmlFor="confirmNewPassword" className={styles.label}>
             再次輸入新的密碼 *
           </label>
           <div className={styles.passwordInput}>
             <input
-              type={showPasswords.confirmPassword ? 'text' : 'password'}
-              name="confirmPassword"
-              value={passwords.confirmPassword}
+              type={showPasswords.confirmNewPassword ? 'text' : 'password'}
+              name="confirmNewPassword"
+              id="confirmNewPassword"
+              value={passwords.confirmNewPassword}
               onChange={handlePasswordChange}
-              onBlur={(e) => validateField('confirmPassword', e.target.value)}
+              onBlur={(e) =>
+                validateField('confirmNewPassword', e.target.value)
+              }
               placeholder="再次輸入新的密碼"
-              className={`${errors.confirmPassword ? styles.errorInput : ''}`}
+              className={`${errors.confirmNewPassword ? styles.errorInput : ''}`}
+              required
             />
             <button
               type="button"
               className={styles.eyeIcon}
-              onClick={() => togglePasswordVisibility('confirmPassword')}
+              onClick={() => togglePasswordVisibility('confirmNewPassword')}
             >
-              {showPasswords.confirmPassword ? <FaEye /> : <FaEyeSlash />}
+              {showPasswords.confirmNewPassword ? <FaEye /> : <FaEyeSlash />}
             </button>
           </div>
-          {errors.confirmPassword && (
-            <div className={styles.errorMessage}>{errors.confirmPassword}</div>
+          {errors.confirmNewPassword && (
+            <div className={styles.errorMessage}>
+              {errors.confirmNewPassword}
+            </div>
           )}
         </div>
 
         <button type="submit" className={styles.submitButton}>
           修改密碼
         </button>
+
+        {/* 修改成功訊息 */}
+        {successMessage && (
+          <div className={styles.successMessage}>{successMessage}</div>
+        )}
+
+        {/* 修改失敗訊息 */}
+        {failedMessage && (
+          <div className={styles.failedMessage}>{failedMessage}</div>
+        )}
       </form>
     </div>
   )

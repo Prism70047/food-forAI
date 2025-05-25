@@ -140,6 +140,20 @@
   animation: fadeIn 0.2s ease-in;
 }
 
+.errorMessageSubmit {
+  color: var(--Color-Error, #ef3b3b);
+  font-size: 14px;
+  font-family:
+    'Inter',
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  letter-spacing: 0.42px;
+  animation: fadeIn 0.2s ease-in;
+  text-align: center;
+}
+
 .forgotPassword {
   display: block;
   text-align: right;

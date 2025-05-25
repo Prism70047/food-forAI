@@ -36,7 +36,6 @@ export function AuthContextProvider({ children }) {
   const login = async (email = '', password = '') => {
     try {
       const r = await fetch(JWT_LOGIN, {
-        // 使用自定義的 JWT_LOGIN 路徑
         method: 'POST',
         body: JSON.stringify({ email, password }),
         headers: {
@@ -46,16 +45,14 @@ export function AuthContextProvider({ children }) {
       const result = await r.json()
       if (result.success && result.data && result.data.token) {
         localStorage.setItem(storageKey, JSON.stringify(result.data))
-        setAuth({ ...result.data }) // 直接使用後端回傳的 data
+        setAuth({ ...result.data })
         return true
-      } else {
-        // 登入失敗，可以根據 result.code 設定具體的錯誤訊息
-        console.error('登入失敗:', result.message || result.error || '未知錯誤')
-        setAuth({ ...noAuth }) // 清除可能殘留的 auth 狀態
-        return false
       }
-    } catch (error) {
-      console.error('登入請求 API 錯誤:', error)
+      // 登入失敗的情況
+      setAuth({ ...noAuth })
+      return false
+    } catch {
+      // 保留 catch 以捕捉錯誤
       setAuth({ ...noAuth })
       return false
     }

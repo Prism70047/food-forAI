@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import styles from '../styles/member-center.module.scss'
+import styles from '../styles/profile-content.module.scss'
 // 引入 React Icons
 import { MdFavorite } from 'react-icons/md'
 import { FaLock, FaUser } from 'react-icons/fa'

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import styles from '../styles/member-center.module.scss'
+import styles from '../styles/profile-content.module.scss'
 import useSWR from 'swr'
 import { useAuth } from '@/hooks/auth-context'
 import { useRouter } from 'next/navigation'

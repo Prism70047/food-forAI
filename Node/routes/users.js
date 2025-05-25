@@ -1,8 +1,114 @@
 import express from "express";
 import db from "../utils/connect-mysql.js";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
+
+// Zod Schema 用於驗證密碼格式
+const passwordSchema = z
+  .string()
+  .min(8, { message: "密碼長度至少需要 8 個字元" })
+  .max(20, { message: "密碼不可超過 20 個字元" })
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/, {
+    message: "密碼需包含大小寫英文字母及數字",
+  });
+
+// 修改密碼 API
+router.put("/api/change-password", async (req, res) => {
+  const output = {
+    success: false,
+    message: "",
+    errors: {}, // 存放欄位驗證錯誤訊息
+  };
+
+  // 1. 驗證 JWT Token 並取得 user_id
+  const authHeader = req.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    output.message = "未經授權：缺少 Token";
+    return res.status(401).json(output);
+  }
+
+  const token = authHeader.slice(7);
+  let decodedToken;
+  try {
+    decodedToken = jwt.verify(token, process.env.JWT_KEY);
+  } catch (error) {
+    output.message = "未經授權：無效的 Token";
+    return res.status(401).json(output);
+  }
+
+  const userId = decodedToken.user_id; // 從 token 中取得 user_id
+
+  // 2. 從請求 body 取得參數
+  const { currentPassword, newPassword } = req.body;
+
+  // 3. 基本參數檢查
+  if (!currentPassword || !newPassword) {
+    output.message = "請提供目前密碼和新密碼";
+    if (!currentPassword) output.errors.currentPassword = "請輸入目前密碼";
+    if (!newPassword) output.errors.newPassword = "請輸入新密碼";
+    return res.status(400).json(output);
+  }
+
+  try {
+    // 4. 從資料庫取得使用者目前的 password_hash
+    const [userRows] = await db.query("SELECT password_hash FROM users WHERE user_id = ?", [
+      userId,
+    ]);
+
+    if (!userRows.length) {
+      output.message = "找不到該使用者";
+      return res.status(404).json(output);
+    }
+
+    const storedPasswordHash = userRows[0].password_hash;
+    if (!storedPasswordHash) {
+      output.message = "使用者密碼資料不完整，請聯繫管理員";
+      return res.status(500).json(output);
+    }
+
+    // 5. 驗證目前密碼
+    const isMatch = await bcrypt.compare(currentPassword, storedPasswordHash);
+    if (!isMatch) {
+      output.message = "目前密碼輸入錯誤";
+      output.errors.currentPassword = "目前密碼輸入錯誤";
+      return res.status(400).json(output);
+    }
+
+    // 6. 驗證新密碼格式
+    const passwordValidation = passwordSchema.safeParse(newPassword);
+    if (!passwordValidation.success) {
+      output.message = "新密碼格式不符合要求";
+      output.errors.newPassword =
+        passwordValidation.error.errors[0]?.message || "密碼需包含大小寫英文字母及數字，長度8-20碼";
+      return res.status(400).json(output);
+    }
+
+    // 7. 將新密碼加密
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    // 8. 更新資料庫中的密碼
+    const [updateResult] = await db.query("UPDATE users SET password_hash = ? WHERE user_id = ?", [
+      newPasswordHash,
+      userId,
+    ]);
+
+    if (updateResult.affectedRows === 1) {
+      output.success = true;
+      output.message = "密碼已成功更新！";
+      res.status(200).json(output);
+    } else {
+      output.message = "密碼更新失敗，請稍後再試";
+      res.status(500).json(output);
+    }
+  } catch (error) {
+    console.error("修改密碼 API 錯誤:", error);
+    output.message = "伺服器內部錯誤，請稍後再試";
+    res.status(500).json(output);
+  }
+});
 
 // 取得所有食譜（可擴充分頁）
 // router.get('/api', async (req, res) => {

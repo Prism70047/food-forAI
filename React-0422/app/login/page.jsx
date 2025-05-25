@@ -80,17 +80,16 @@ export default function LoginPage() {
       if (success) {
         router.push('/member-center')
       } else {
-        setErrors({
+        setErrors((prev) => ({
           ...prev,
           submit: '帳號或密碼錯誤，請重新輸入',
-        })
+        }))
       }
     } catch (err) {
-      console.error('登入錯誤：', err)
-      setErrors({
+      setErrors((prev) => ({
         ...prev,
-        submit: '登入時發生問題，請稍後再試。',
-      })
+        submit: '登入時發生問題，請稍後再試',
+      }))
     }
   }
 
@@ -159,13 +158,6 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* 提交後的錯誤訊息 */}
-          {errors.submit && (
-            <div className={`${styles.errorMessage} ${styles.submitError}`}>
-              {errors.submit}
-            </div>
-          )}
-
           <Link href="/forgot-password" className={styles.forgotPassword}>
             忘記密碼
           </Link>
@@ -173,6 +165,13 @@ export default function LoginPage() {
           <button type="submit" className={styles.loginButton}>
             登入
           </button>
+
+          {/* 提交後的錯誤訊息 */}
+          {errors.submit && (
+            <div className={`${styles.errorMessageSubmit}`}>
+              {errors.submit}
+            </div>
+          )}
         </form>
 
         {/* 其他帳號登入 */}
