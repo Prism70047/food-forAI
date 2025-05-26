@@ -110,6 +110,141 @@ router.put("/api/change-password", async (req, res) => {
   }
 });
 
+// 更新會員資料 API
+router.put("/api/:id", async (req, res) => {
+  const output = {
+    success: false,
+    message: "",
+    data: null,
+    error: null,
+  };
+
+  const userIdFromToken = req.my_jwt?.user_id; // 從 JWT 中間件取得 user_id
+  const userIdFromParams = parseInt(req.params.id, 10);
+
+  if (!userIdFromToken) {
+    output.error = "未經授權：缺少 Token 或 Token 無效";
+    return res.status(401).json(output);
+  }
+
+  if (userIdFromToken !== userIdFromParams) {
+    output.error = "禁止存取：您無權修改此會員資料";
+    return res.status(403).json(output);
+  }
+
+  const {
+    phone_number,
+    full_name,
+    username,
+    birthday, // 格式應為 YYYY-MM-DD
+    gender, // 'M', 'F', 'Other', 或 null
+    address,
+  } = req.body;
+
+  // 後端資料驗證 (建議使用 Zod 或類似庫)
+  // 這裡僅作簡單示例，實際應更完善
+  const updateFields = {};
+  if (phone_number !== undefined) {
+    if (!/^09\d{8}$/.test(phone_number) && phone_number !== "") {
+      output.error = "手機號碼格式不正確";
+      return res.status(400).json(output);
+    }
+    updateFields.phone_number = phone_number;
+  }
+  if (full_name !== undefined) {
+    if (full_name.length > 50) {
+      output.error = "姓名不可超過50個字";
+      return res.status(400).json(output);
+    }
+    updateFields.full_name = full_name;
+  }
+  if (username !== undefined) {
+    if (username.length === 0 || username.length > 10) {
+      output.error = "使用者名稱長度必須在1到10個字之間";
+      return res.status(400).json(output);
+    }
+    // 檢查 Username 是否已經存在 (且不是當前使用者自己)
+    const [existingUsername] = await db.query(
+      "SELECT user_id FROM users WHERE username = ? AND user_id != ?",
+      [username, userIdFromParams]
+    );
+    if (existingUsername.length > 0) {
+      output.error = "此使用者名稱已被其他帳號使用";
+      return res.status(409).json(output); // 409 Conflict
+    }
+    updateFields.username = username;
+  }
+  if (birthday !== undefined) {
+    // 生日驗證 (需年滿18歲)
+    const birthDate = new Date(birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 18 && birthday !== "") {
+      // 如果生日不是空字串才驗證年齡
+      output.error = "需年滿18歲";
+      return res.status(400).json(output);
+    }
+    updateFields.birthday = birthday || null; // 如果是空字串，存為 NULL
+  }
+  if (gender !== undefined) {
+    const validGenders = ["M", "F", "Other", ""];
+    if (!validGenders.includes(gender)) {
+      output.error = "性別格式不正確";
+      return res.status(400).json(output);
+    }
+    updateFields.gender = gender === "" ? null : gender;
+  }
+  if (address !== undefined) {
+    updateFields.address = address;
+  }
+
+  if (Object.keys(updateFields).length === 0) {
+    output.message = "沒有提供任何可更新的資料";
+    output.success = true; // 雖然沒更新，但請求本身是成功的
+    return res.status(200).json(output);
+  }
+
+  updateFields.updated_at = new Date(); // 更新時間
+
+  try {
+    const sql = "UPDATE users SET ? WHERE user_id = ?";
+    const [result] = await db.query(sql, [updateFields, userIdFromParams]);
+
+    if (result.affectedRows === 1) {
+      output.success = true;
+      output.message = "會員資料更新成功";
+      // 可以選擇是否回傳更新後的資料
+      const [updatedUser] = await db.query(
+        "SELECT user_id, email, phone_number, full_name, DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, gender, address, username FROM users WHERE user_id=?",
+        [userIdFromParams]
+      );
+      output.data = updatedUser[0];
+      res.status(200).json(output);
+    } else if (result.changedRows === 0 && result.affectedRows === 1) {
+      // affectedRows 是 1 但 changedRows 是 0，表示資料未變動
+      output.success = true;
+      output.message = "會員資料未變更";
+      const [currentUserData] = await db.query(
+        "SELECT user_id, email, phone_number, full_name, DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, gender, address, username FROM users WHERE user_id=?",
+        [userIdFromParams]
+      );
+      output.data = currentUserData[0];
+      res.status(200).json(output);
+    } else {
+      output.error = "更新失敗，找不到該會員或資料未變動";
+      res.status(404).json(output);
+    }
+  } catch (err) {
+    console.error("更新會員資料 API 錯誤:", err);
+    output.error = "伺服器內部錯誤，請稍後再試";
+    res.status(500).json(output);
+  }
+});
+
 // 取得所有食譜（可擴充分頁）
 // router.get('/api', async (req, res) => {
 //     try {

@@ -359,3 +359,95 @@
     white-space: initial;
   }
 }
+
+.statusMessage {
+  margin-top: 15px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.successMessage {
+  color: #155724; 
+  background-color: #d4edda; 
+  border-color: #c3e6cb; 
+}
+
+.errorMessage {
+  color: var(--Color-Error, #721c24); 
+  background-color: var(--Color-Error-Bg, #f8d7da); 
+  border-color: var(--Color-Error-Border, #f5c6cb); 
+}
+
+.infoMessage {
+  color: #0c5460; 
+  background-color: #d1ecf1; 
+  border-color: #bee5eb; 
+}
+
+.errorMessageInline {
+  color: var(--Color-Error, #ef3b3b);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.editActions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  justify-content: flex-start;
+}
+
+// 共用的按鈕基底樣式
+.actionButton {
+  padding: 10px 28px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-width: 130px;
+  text-align: center;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    box-shadow: none;
+  }
+}
+
+// 儲存變更按鈕 (主要操作) - 橘色背景
+.saveButton {
+  background-color: var(--Color-Primary, #df6c2d);
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: #c85f20;
+    border-color: #c85f20;
+  }
+
+  &:disabled {
+    background-color: var(--Color-Primary, #df6c2d);
+  }
+}
+
+// 取消按鈕 (次要操作)
+.cancelButton {
+  background-color: rgb(230, 230, 230);
+  color: var(--Color-Secondary, #423c3a);
+  border-color: var(--Color-Secondary, #423c3a);
+
+  &:hover:not(:disabled) {
+    background-color: var(--Color-Secondary, #423c3a);
+    color: white;
+  }
+
+  &:disabled {
+    background-color: white;
+    color: var(--Color-Secondary, #423c3a);
+    border-color: var(--Color-Secondary, #423c3a);
+  }
+}

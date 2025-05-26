@@ -153,7 +153,7 @@ const PasswordContent = () => {
 
     try {
       const response = await fetch(
-        `${NEXT_PUBLIC_API_URL}/users/api/change-password`, // 後端 API 路徑
+        `${process.env.NEXT_PUBLIC_API_URL}/users/api/change-password`, // 後端 API 路徑
         {
           method: 'PUT',
           headers: {
