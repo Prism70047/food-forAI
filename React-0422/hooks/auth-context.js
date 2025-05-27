@@ -25,35 +25,46 @@ const noAuth = {
   address: '',
 }
 
-const storageKey = 'shinder-auth'
-
 // 元件
 export function AuthContextProvider({ children }) {
-  const [auth, setAuth] = useState({ ...noAuth })
+  const [auth, setAuth] = useState({
+    user_id: '',
+    email: '',
+    username: '',
+    token: '',
+    profile_picture_url: '',
+    // ... 其他欄位
+  })
   const [authInit, setAuthInit] = useState(false) // 初始化狀態
+  const storageKey = 'shinder-auth' // 你的 localStorage key
 
   // 登入功能函式
   const login = async (email = '', password = '') => {
     try {
-      const r = await fetch(JWT_LOGIN, {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      const result = await r.json()
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/jwt-login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        }
+      )
+
+      const result = await response.json()
+
+      // 直接使用後端回傳的 result.data 來更新 Auth Context 狀態和 localStorage
       if (result.success && result.data && result.data.token) {
         localStorage.setItem(storageKey, JSON.stringify(result.data))
-        setAuth({ ...result.data })
-        return true
+        setAuth(result.data)
+        return true // 登入成功
+      } else {
+        // 登入失敗，清除舊資料，重設為無登入狀態
+        localStorage.removeItem(storageKey)
+        setAuth({ ...noAuth })
+        return false
       }
-      // 登入失敗的情況
-      setAuth({ ...noAuth })
-      return false
-    } catch {
-      // 保留 catch 以捕捉錯誤
-      setAuth({ ...noAuth })
+    } catch (error) {
+      console.error('登入 API 錯誤:', error)
       return false
     }
   }
@@ -83,8 +94,11 @@ export function AuthContextProvider({ children }) {
         const storedAuthData = JSON.parse(str)
         // 確保從 localStorage 讀取的資料包含必要的 token 和 user_id
         if (storedAuthData && storedAuthData.token && storedAuthData.user_id) {
-          // 驗證 token 是否存在
-          setAuth(storedAuthData)
+          setAuth({
+            ...noAuth, // 從預設值開始
+            ...storedAuthData, // 覆蓋儲存的值
+            profile_picture_url: storedAuthData.profile_picture_url || '', // 從後端取得的大頭貼檔案路徑
+          })
         } else {
           // 如果 localStorage 中的資料不完整或無 token，則清除它
           localStorage.removeItem(storageKey)
@@ -99,7 +113,7 @@ export function AuthContextProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ auth, login, logout, getAuthHeader, authInit }}
+      value={{ auth, setAuth, login, logout, getAuthHeader, authInit }}
     >
       {children}
     </AuthContext.Provider>

@@ -29,15 +29,17 @@ export default function LoginPage() {
   // 欄位失焦時進行驗證
   const validateField = (name, value) => {
     let error = ''
+    const trimmedValue = value.trim()
+
     if (name === 'email') {
-      if (!value) {
+      if (!trimmedValue) {
         error = '請輸入電子信箱'
-      } else if (!validateEmail(value)) {
+      } else if (!validateEmail(trimmedValue)) {
         error = '帳號格式錯誤或此帳號尚未註冊'
       }
     }
     if (name === 'password') {
-      if (!value) {
+      if (!trimmedValue) {
         error = '請輸入密碼'
       }
     }
@@ -47,7 +49,7 @@ export default function LoginPage() {
   // 提交表單
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setErrors({ email: '', password: '', submit: '' }) // 重置所有錯誤訊息
+    setErrors({ email: '', password: '', submit: '' })
 
     let hasError = false
     let newErrors = {
@@ -56,16 +58,18 @@ export default function LoginPage() {
       submit: '',
     }
 
-    // 同時檢查 email 和密碼
-    if (!email) {
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
+
+    if (!trimmedEmail) {
       newErrors.email = '請輸入電子信箱'
       hasError = true
-    } else if (!validateEmail(email)) {
+    } else if (!validateEmail(trimmedEmail)) {
       newErrors.email = '帳號格式錯誤或此帳號尚未註冊'
       hasError = true
     }
 
-    if (!password) {
+    if (!trimmedPassword) {
       newErrors.password = '請輸入密碼'
       hasError = true
     }
@@ -76,7 +80,7 @@ export default function LoginPage() {
     }
 
     try {
-      const success = await login(email, password)
+      const success = await login(trimmedEmail, trimmedPassword)
       if (success) {
         router.push('/member-center')
       } else {
@@ -121,8 +125,8 @@ export default function LoginPage() {
               className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
               placeholder="Example@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={(e) => validateField('email', e.target.value)}
+              onChange={(e) => setEmail(e.target.value.trim())}
+              onBlur={(e) => validateField('email', e.target.value.trim())}
             />
             {errors.email && (
               <div className={styles.errorMessage}>{errors.email}</div>
@@ -142,8 +146,8 @@ export default function LoginPage() {
                 className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
                 placeholder="*************"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onBlur={(e) => validateField('password', e.target.value)}
+                onChange={(e) => setPassword(e.target.value.trim())}
+                onBlur={(e) => validateField('password', e.target.value.trim())}
               />
               <button
                 type="button"

@@ -29,6 +29,8 @@ import contactRouter from "./routes/contact.js";
 import orderRouter from "./routes/order.js";
 // 設定會員註冊的路由
 import registerRouter from "./routes/register.js";
+// 設定上傳大頭貼圖片的路由
+import uploadAvatarsRouter from "./routes/upload-avatars.js";
 
 const MySQLStore = mysql_session(session);
 const sessionStore = new MySQLStore({}, db);
@@ -108,21 +110,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // <-- 處理 JSON 請求 body
 // 連到食譜
 app.use("/recipes", recipesRouter);
+// 連到商城
 app.use("/products", productsRouter);
-// 連到users
+// 連到會員中心相關
 app.use("/users", usersRouter);
-// 連到評價的
+// 連到上傳大頭貼圖片 (掛載在 /users 路徑下)
+app.use("/users", uploadAvatarsRouter);
+// 連到評價
 app.use("/products-review", reviewRouter);
-// 連到餐廳詳細頁面的
+// 連到餐廳詳細頁面
 app.use("/restaurants", restaurantsRouter);
 // 連到購物車
 app.use("/cart", cartRouter);
-// 連到聯絡我們的
+// 連到聯絡我們
 app.use("/contact", contactRouter);
 // 連到訂單頁面
 app.use("/api/orders", orderRouter);
-app.use("/contact", contactRouter);
-// 連到會員註冊的
+// 連到會員註冊
 app.use("/register", registerRouter);
 
 // 路由定義, 兩個條件: 1. 拜訪的 HTTP 方法, 2. 路徑
@@ -269,7 +273,8 @@ app.get("/login", async (req, res) => {
   res.locals.pageName = "login";
   res.render("login");
 });
-//   登出功能
+
+// 登出功能
 app.get("/logout", async (req, res) => {
   delete req.session.admin;
   req.session.save((error) => {
@@ -281,7 +286,7 @@ app.get("/logout", async (req, res) => {
   });
 });
 
-// 處理登入功能, 回應 JWT token
+// 處理登入功能，回應 JWT token
 app.post("/jwt-login", upload.none(), async (req, res) => {
   const output = {
     success: false,
@@ -293,7 +298,7 @@ app.post("/jwt-login", upload.none(), async (req, res) => {
       username: "",
       token: "",
       full_name: "",
-      // 可以加入更多從 users 表中回傳的欄位
+      profile_picture_url: "",
     },
   };
 
@@ -347,6 +352,7 @@ app.post("/jwt-login", upload.none(), async (req, res) => {
     gender: rows[0].gender,
     address: rows[0].address,
     registration_date: rows[0].registration_date,
+    profile_picture_url: rows[0].profile_picture_url || "",
   };
 
   output.code = 200;

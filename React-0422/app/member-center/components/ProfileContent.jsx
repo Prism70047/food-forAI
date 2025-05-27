@@ -1,13 +1,14 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import styles from '../styles/profile-content.module.scss'
 import useSWR, { mutate } from 'swr' // 引入 mutate 以便資料更新後重新驗證
 import { useAuth } from '@/hooks/auth-context'
 import { useRouter } from 'next/navigation'
+import { toast } from 'react-toastify'
 
 const ProfileContent = () => {
-  const { auth, getAuthHeader, authInit } = useAuth()
+  const { auth, getAuthHeader, authInit, setAuth } = useAuth()
   const router = useRouter()
 
   // 編輯資料的狀態管理
@@ -17,6 +18,12 @@ const ProfileContent = () => {
   const [loading, setLoading] = useState(false) // API請求時的載入狀態
   const [formErrors, setFormErrors] = useState({}) // 表單驗證錯誤
   const [statusMessage, setStatusMessage] = useState({ type: '', message: '' }) // 送出編輯後的狀態結果回報
+
+  // 上傳頭貼相關狀態
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewImage, setPreviewImage] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null) // 用來觸發檔案選擇
 
   // --- 偵錯用 ---
   useEffect(() => {
@@ -48,14 +55,13 @@ const ProfileContent = () => {
       })
 
       // 除錯用：檢查回應狀態與內容類型
-      console.log('Response status:', response.status)
-      const contentType = response.headers.get('content-type')
-      console.log('Content-Type:', contentType)
-
       if (!response.ok) {
-        const text = await response.text()
-        console.error('Error response body:', text)
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: '無法解析錯誤回應' }))
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        )
       }
 
       const data = await response.json()
@@ -65,7 +71,6 @@ const ProfileContent = () => {
       if (!data.success) {
         throw new Error(data.error || '無法取得資料')
       }
-
       return data
     } catch (error) {
       console.error('抓取會員資料 API 錯誤:', error)
@@ -83,8 +88,11 @@ const ProfileContent = () => {
   const {
     data,
     error: swrError,
-    isLoading: swrIsLoading, // 增加 swrIsLoading 以便追蹤載入狀態
-  } = useSWR(userApiUrl, fetcher)
+    isLoading: swrIsLoading,
+  } = useSWR(userApiUrl, fetcher, {
+    // 當 data.rows.avatar 變更時，重新觸發 SWR，更建議在成功上傳後直接 mutate SWR cache
+    revalidateOnFocus: false, // 視需求調整
+  })
 
   // 設定編輯時的表單資料
   useEffect(() => {
@@ -94,15 +102,33 @@ const ProfileContent = () => {
         phone_number: data.rows.phone_number || '',
         full_name: data.rows.full_name || '',
         username: data.rows.username || '',
-        // 確保 birthday 是 YYYY-MM-DD 格式，如果為 null 或 undefined 則為空字串
-        birthday: data.rows.birthday ? data.rows.birthday.split('T')[0] : '',
+        birthday: data.rows.birthday ? data.rows.birthday.split('T')[0] : '', // 確保 birthday 是 YYYY-MM-DD 格式，如果為 null 或 undefined 則為空字串
         gender: data.rows.gender || '',
         address: data.rows.address || '',
+        avatar: data.rows.profile_picture_url || '', // 確保 avatar 初始值來自 profile_picture_url
       }
       setFormData(userData)
       setInitialData(userData)
+      // 決定初始頭貼路徑 (優先用 data，其次用 auth)
+      const initialAvatar =
+        data.rows.profile_picture_url || auth.profile_picture_url
+      setPreviewImage(
+        initialAvatar
+          ? `${process.env.NEXT_PUBLIC_API_URL}${initialAvatar}`
+          : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
+      )
+    } else if (auth.user_id) {
+      const initialAvatar = auth.profile_picture_url
+      setPreviewImage(
+        initialAvatar
+          ? `${process.env.NEXT_PUBLIC_API_URL}${initialAvatar}`
+          : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
+      )
+    } else {
+      // 如果 data 和 auth 都沒有頭貼
+      setPreviewImage(null) // TODO:換成預設圖示
     }
-  }, [data])
+  }, [data, auth])
 
   // 處理編輯後提交訊息自動關閉
   useEffect(() => {
@@ -112,7 +138,7 @@ const ProfileContent = () => {
     if (statusMessage.message) {
       timerId = setTimeout(() => {
         setStatusMessage({ type: '', message: '' })
-      }, 3000) // 3 秒後清空 statusMessage 
+      }, 3000) // 3 秒後清空 statusMessage
     }
 
     // 清理函式 (cleanup function)
@@ -227,7 +253,7 @@ const ProfileContent = () => {
     setStatusMessage({ type: '', message: '' }) // 清除狀態訊息
   }
 
-  // 表單驗證函式
+  // 表單驗證
   const validateForm = () => {
     const newErrors = {}
     let isValid = true
@@ -244,6 +270,7 @@ const ProfileContent = () => {
     return isValid
   }
 
+  // 儲存變更
   const handleSaveChanges = async () => {
     if (!validateForm()) {
       setStatusMessage({
@@ -268,7 +295,7 @@ const ProfileContent = () => {
     if (Object.keys(dataToUpdate).length === 0) {
       setLoading(false)
       setIsEditing(false)
-      setStatusMessage({ type: 'info', message: '會員資料未變更' }) // 可以用 info 或 success
+      setStatusMessage({ type: 'info', message: '會員資料未變更' })
       return
     }
 
@@ -288,9 +315,38 @@ const ProfileContent = () => {
 
       if (response.ok && result.success) {
         setStatusMessage({ type: 'success', message: '會員資料更新成功！' })
-        setInitialData({ ...formData })
+        const updatedUserData = {
+          ...initialData, // 從舊資料開始
+          ...dataToUpdate, // 覆蓋更新的部分
+          avatar: result.data.profile_picture_url || initialData.avatar, // 確保使用回傳的 profile_picture_url
+        }
+        setInitialData(updatedUserData)
+        setFormData(updatedUserData)
+        setPreviewImage(
+          result.data.profile_picture_url
+            ? `${process.env.NEXT_PUBLIC_API_URL}${result.data.profile_picture_url}`
+            : previewImage
+        )
         setIsEditing(false)
-        mutate(userApiUrl) // 觸發 SWR 重新驗證
+        mutate(userApiUrl) // 重新觸發 SWR
+
+        // 同時更新 auth Context 和 localStorage
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          profile_picture_url: result.data.profile_picture_url,
+        }))
+        const storedAuthData = JSON.parse(
+          localStorage.getItem('shinder-auth') || '{}'
+        )
+        if (storedAuthData.token) {
+          localStorage.setItem(
+            'shinder-auth',
+            JSON.stringify({
+              ...storedAuthData,
+              profile_picture_url: result.data.profile_picture_url,
+            })
+          )
+        }
       } else {
         setStatusMessage({
           type: 'error',
@@ -317,6 +373,143 @@ const ProfileContent = () => {
   }
   // --- 編輯事件處理函式結束 ---
 
+  // --- 頭貼上傳相關函式 ---
+  const handleFileChange = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB
+        toast.error('檔案大小不能超過 5MB')
+        setSelectedFile(null)
+        setPreviewImage(
+          initialData.avatar
+            ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+            : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f'
+        )
+        return
+      }
+      if (!file.type.startsWith('image/')) {
+        toast.error('僅限上傳圖片檔案！')
+        setSelectedFile(null)
+        setPreviewImage(
+          initialData.avatar
+            ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+            : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f'
+        )
+        return
+      }
+      setSelectedFile(file)
+      setPreviewImage(URL.createObjectURL(file)) // 顯示預覽圖
+    }
+  }
+
+  const handleAvatarUpload = async () => {
+    if (!selectedFile) {
+      toast.warn('請先選擇一個檔案！')
+      return
+    }
+    if (!auth?.user_id) {
+      toast.error('無法取得使用者資訊，請重新登入')
+      return
+    }
+
+    setUploading(true)
+    const uploadFormData = new FormData()
+    uploadFormData.append('avatar', selectedFile)
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/users/api/upload-avatar/${auth.user_id}`,
+        {
+          method: 'POST',
+          headers: {
+            // 'Content-Type': 'multipart/form-data' (Fetch 會自動設定，如果手動設定可能會出錯)
+            ...getAuthHeader(), // 取得 JWT Token
+          },
+          body: uploadFormData,
+        }
+      )
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast.success(result.message || '頭貼更新成功！')
+        const newAvatarServerPath = result.filePath
+        const newAvatarFullPath = `${process.env.NEXT_PUBLIC_API_URL}${newAvatarServerPath}`
+
+        // 1. 更新預覽圖
+        setPreviewImage(newAvatarFullPath)
+
+        // 2. 更新表單和初始資料狀態
+        setFormData((prev) => ({ ...prev, avatar: newAvatarServerPath }))
+        setInitialData((prev) => ({ ...prev, avatar: newAvatarServerPath }))
+
+        // 3. 更新 Auth Context
+        setAuth((prevAuth) => ({
+          ...prevAuth,
+          profile_picture_url: newAvatarServerPath,
+        }))
+
+        // 4. 更新 localStorage 中的 auth 資料 (重要！這樣刷新頁面後才會是新的頭貼)
+        const storedAuthData = JSON.parse(
+          localStorage.getItem('shinder-auth') || '{}'
+        )
+        if (storedAuthData.token) {
+          localStorage.setItem(
+            'shinder-auth',
+            JSON.stringify({
+              ...storedAuthData,
+              profile_picture_url: newAvatarServerPath,
+            })
+          )
+        }
+
+        // 5. 清除已選擇檔案 (清除 <input> 的值，這樣才能重複選擇同一個檔案)
+        setSelectedFile(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+
+        //  6. 更新 SWR 快取，但不觸發重新驗證
+        mutate(
+          userApiUrl,
+          (currentData) => {
+            // 如果沒有當前資料，就回傳 null 或 undefined
+            if (!currentData) return currentData
+            // 回傳一個新的資料物件，只更新 profile_picture_url
+            return {
+              ...currentData, // 保留其他資料 (success, etc.)
+              rows: {
+                ...currentData.rows, // 保留 rows 中的其他欄位
+                profile_picture_url: newAvatarServerPath, // 更新頭貼路徑
+              },
+            }
+          },
+          false // 設定為 false，避免 SWR 立即重新去後端抓取資料
+        )
+      } else {
+        toast.error(result.message || '頭貼上傳失敗。')
+        // 上傳失敗時，預覽圖應該回復到之前的頭貼
+        setPreviewImage(
+          initialData.avatar
+            ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+            : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
+        )
+      }
+    } catch (error) {
+      console.error('頭貼上傳 API 請求錯誤:', error)
+      toast.error('頭貼上傳時發生錯誤，請檢查網路連線。')
+      setPreviewImage(
+        initialData.avatar
+          ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+          : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
+      )
+    } finally {
+      setUploading(false)
+    }
+  }
+  // --- 頭貼上傳相關函式結束 ---
+
   // 錯誤狀態處理
   if (!authInit) return <div className={styles.loading}>登入狀態確認中...</div>
   if (swrError)
@@ -325,11 +518,12 @@ const ProfileContent = () => {
     )
   if (swrIsLoading && !data)
     return <div className={styles.loading}>會員資料讀取中...</div>
+  if (!userApiUrl && authInit) {
+    // 如果 authInit 完成但 userApiUrl 仍為 null (代表未登入)
+    return <div className={styles.error}>請先登入以查看會員資料</div>
+  }
   if (!data?.success || !data?.rows) {
-    if (shouldFetch) {
-      return <div className={styles.error}>會員資料格式錯誤或未找到</div>
-    }
-    return null
+    return <div className={styles.error}>會員資料格式錯誤或未找到</div>
   }
 
   // 使用 initialData 來顯示檢視模式的資料，確保取消時顯示正確
@@ -346,23 +540,58 @@ const ProfileContent = () => {
   return (
     <div className={styles.profileContainer}>
       <div className={styles.profileHeader}>
+        {/* 使用者頭貼 */}
         <div className={styles.userPhoto}>
           <img
             src={
-              data.rows.avatar || // 這裡還是用 data.rows 的 avatar
-              'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f'
+              previewImage || // 1. 優先顯示預覽圖
+              (formData.avatar
+                ? `${process.env.NEXT_PUBLIC_API_URL}${formData.avatar}` // 2. 使用 formData 的路徑 (修正後)
+                : null) ||
+              (auth.profile_picture_url
+                ? `${process.env.NEXT_PUBLIC_API_URL}${auth.profile_picture_url}` // 3. 使用 auth 的路徑 (修正後)
+                : null) ||
+              'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // 4. 預設圖 (請換成你自己的預設圖 URL)
             }
             alt="User profile"
+            onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            style={{
+              cursor: 'pointer',
+              width: '90px',
+              height: '90px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }} // 加上一些基本樣式
+          />
+          {/* 隱藏的檔案輸入框 */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            style={{ display: 'none' }}
           />
         </div>
         <div className={styles.userInfo}>
           <div className={styles.profileText}>
-            {/* 顯示 initialData 的 username */}
             <div className={styles.username}>{user.username}</div>
             <div className={styles.email}>{user.email}</div>
           </div>
           <div className={styles.profileButtons}>
-            <button className={styles.editButton}>修改頭貼</button>
+            {/* 「上傳頭貼」按鈕 */}
+            <button
+              className={styles.editButton}
+              // 根據 selectedFile 決定 onClick 的行為
+              onClick={
+                selectedFile
+                  ? handleAvatarUpload
+                  : () => fileInputRef.current?.click()
+              }
+              disabled={uploading} // 「上傳中...」時禁用按鈕
+            >
+              {/* 根據 uploading 和 selectedFile 決定按鈕文字 */}
+              {uploading ? '上傳中...' : selectedFile ? '確認上傳' : '修改頭貼'}
+            </button>
             {/* 「編輯會員資料」按鈕 */}
             {!isEditing && (
               <button

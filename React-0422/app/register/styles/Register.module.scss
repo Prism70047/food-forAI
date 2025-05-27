@@ -245,20 +245,10 @@
   font-size: 20px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
-  transition: background-color 0.2s ease;
+  margin-bottom: 24px;
 
   &:hover {
     background-color: darken(#df6c2d, 5%);
-  }
-
-  &:active {
-    background-color: darken(#df6c2d, 10%);
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(223, 108, 45, 0.3);
   }
 }
 

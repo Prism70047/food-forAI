@@ -12,6 +12,8 @@ dev.env
 my-room
 tep/
 public/img/
+public/uploads/
+
 
 # Node artifact files
 node_modules/

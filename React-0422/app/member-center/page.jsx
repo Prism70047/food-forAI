@@ -1,7 +1,7 @@
 // member-center/page.jsx
 'use client'
 
-import React, { useState, useEffect } from 'react' // 引入 useState
+import React, { useState, useEffect } from 'react'
 import styles from './styles/profile-content.module.scss'
 import Sidebar from './components/Sidebar'
 import ProfileContent from './components/ProfileContent'

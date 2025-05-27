@@ -216,26 +216,26 @@ router.put("/api/:id", async (req, res) => {
 
     if (result.affectedRows === 1) {
       output.success = true;
-      output.message = "會員資料更新成功";
-      // 可以選擇是否回傳更新後的資料
+      output.message = result.changedRows === 0 ? "會員資料未變更" : "會員資料更新成功";
       const [updatedUser] = await db.query(
-        "SELECT user_id, email, phone_number, full_name, DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, gender, address, username FROM users WHERE user_id=?",
+        `SELECT 
+           user_id, 
+           email, 
+           phone_number, 
+           full_name, 
+           DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, 
+           gender, 
+           address, 
+           username,
+           profile_picture_url
+         FROM users 
+         WHERE user_id=?`,
         [userIdFromParams]
       );
       output.data = updatedUser[0];
       res.status(200).json(output);
-    } else if (result.changedRows === 0 && result.affectedRows === 1) {
-      // affectedRows 是 1 但 changedRows 是 0，表示資料未變動
-      output.success = true;
-      output.message = "會員資料未變更";
-      const [currentUserData] = await db.query(
-        "SELECT user_id, email, phone_number, full_name, DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, gender, address, username FROM users WHERE user_id=?",
-        [userIdFromParams]
-      );
-      output.data = currentUserData[0];
-      res.status(200).json(output);
     } else {
-      output.error = "更新失敗，找不到該會員或資料未變動";
+      output.error = "更新失敗，找不到該會員";
       res.status(404).json(output);
     }
   } catch (err) {
@@ -287,7 +287,7 @@ router.get("/api", async (req, res) => {
   }
 });
 
-// 取得單一會員資料
+// 取得單一會員資料 API
 router.get("/api/:id", async (req, res) => {
   // 加入 JWT 驗證，確保只有已登入且為本人的使用者才能存取
   // --- JWT 驗證開始 ---
@@ -326,7 +326,8 @@ router.get("/api/:id", async (req, res) => {
         DATE_FORMAT(birthday, '%Y-%m-%d') AS birthday, 
         gender, 
         address, 
-        username
+        username,
+        profile_picture_url
       FROM users 
       WHERE user_id=?
     `;

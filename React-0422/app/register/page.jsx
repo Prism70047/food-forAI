@@ -46,8 +46,9 @@ export default function RegisterPage() {
 
   // 驗證密碼格式
   const validatePassword = (password) => {
+    const trimmedPassword = password.trim()
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$/
-    return passwordRegex.test(password)
+    return passwordRegex.test(trimmedPassword)
   }
 
   // 驗證生日格式和年齡
@@ -84,13 +85,14 @@ export default function RegisterPage() {
           error = '無效的手機號碼格式，開頭必須為09，總共10碼數字'
         break
       case 'password':
-        if (!value) error = '請輸入密碼'
+        if (!value.trim()) error = '請輸入密碼'
         else if (!validatePassword(value))
-          error = '密碼需包含大小寫英文字母及數字，長度8-20碼'
+          error = '密碼需包含大小寫英文字母及數字，長度8-20碼 (不含空白)'
         break
       case 'confirmPassword':
-        if (!value) error = '請再次輸入密碼'
-        else if (value !== formData.password) error = '密碼與確認密碼不相符'
+        if (!value.trim()) error = '請再次輸入密碼'
+        else if (value.trim() !== formData.password.trim())
+          error = '密碼與確認密碼不相符'
         break
       case 'full_name':
         if (!value) error = '請輸入姓名'
@@ -113,15 +115,21 @@ export default function RegisterPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // 對密碼相關欄位特別處理 (去除頭尾空白)
+    const trimmedValue = ['password', 'confirmPassword'].includes(name)
+      ? value.trim()
+      : value
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: trimmedValue,
     }))
-    // 當使用者開始輸入時，可以清除該欄位的即時錯誤，提交時會重新驗證
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
     }
-    setSubmitError('') // 清除提交時的通用錯誤
+    setSubmitError('')
   }
 
   const handleSubmit = async (e) => {
@@ -158,7 +166,8 @@ export default function RegisterPage() {
         case 'password':
           if (!value) errorMessage = '請輸入密碼'
           else if (!validatePassword(value))
-            errorMessage = '密碼需包含大小寫英文字母及數字，長度8-20碼'
+            errorMessage =
+              '密碼需包含大小寫英文字母及數字，長度8-20碼 (不含空白)'
           break
         case 'confirmPassword':
           if (!value) errorMessage = '請再次輸入密碼'
@@ -320,7 +329,7 @@ export default function RegisterPage() {
                 id="password"
                 name="password"
                 className={`${styles.input} ${errors.password ? styles.errorInput : ''}`}
-                placeholder="需包含大小寫英文字母及數字，長度8-20碼"
+                placeholder="需包含大小寫英文字母及數字，長度8-20碼 (不含空白)"
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={(e) => validateField('password', e.target.value)}

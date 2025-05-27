@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import styles from '../styles/password-content.module.scss'
 import { FaEye, FaEyeSlash } from '../../icons/icons'
-import { toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
 import { useAuth } from '@/hooks/auth-context'
 
 const PasswordContent = () => {
@@ -40,20 +38,37 @@ const PasswordContent = () => {
 
   // 驗證密碼格式
   const validatePasswordFormat = (password) => {
+    // 先去除頭尾空白再驗證
+    const trimmedPassword = password.trim()
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$/
-    return passwordRegex.test(password)
+    return passwordRegex.test(trimmedPassword)
   }
 
   // 處理密碼輸入變更
   const handlePasswordChange = (e) => {
     const { name, value } = e.target
+
+    // 去除頭尾空白
+    const trimmedValue = value.trim()
+
     setPasswords((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: trimmedValue,
     }))
-    // 清除該欄位的錯誤提示
+
+    // 清除該欄位的錯誤訊息
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))
+    }
+
+    // 針對新密碼欄位即時驗證格式
+    if (name === 'newPassword' && trimmedValue) {
+      if (!validatePasswordFormat(trimmedValue)) {
+        setErrors((prev) => ({
+          ...prev,
+          newPassword: '密碼需包含大小寫英文字母及數字，長度8-20碼 (不含空白)',
+        }))
+      }
     }
   }
 
@@ -83,7 +98,8 @@ const PasswordContent = () => {
       newErrors.newPassword = '請輸入新密碼'
       isValid = false
     } else if (!validatePasswordFormat(passwords.newPassword)) {
-      newErrors.newPassword = '密碼需包含大小寫英文字母及數字，長度8-20碼'
+      newErrors.newPassword =
+        '密碼需包含大小寫英文字母及數字，長度8-20碼 (不含空白)'
       isValid = false
     }
 
@@ -116,7 +132,8 @@ const PasswordContent = () => {
         if (!value) {
           newErrors[fieldName] = '請輸入新密碼'
         } else if (!validatePasswordFormat(value)) {
-          newErrors[fieldName] = '密碼需包含大小寫英文字母及數字，長度8-20碼'
+          newErrors[fieldName] =
+            '密碼需包含大小寫英文字母及數字，長度8-20碼 (不含空白)'
         } else {
           newErrors[fieldName] = ''
         }
@@ -140,14 +157,22 @@ const PasswordContent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // 先驗證所有欄位
     if (!validateFields()) {
-      toast.error('請檢查所有欄位是否填寫正確！')
+      return
+    }
+
+    // 再次確認新密碼格式
+    if (!validatePasswordFormat(passwords.newPassword)) {
+      setErrors((prev) => ({
+        ...prev,
+        newPassword: '密碼需包含大小寫英文字母及數字，長度8-20碼 (不含空白)',
+      }))
       return
     }
 
     if (!auth.token || !auth.user_id) {
-      toast.error('您尚未登入，請先登入！')
-      // 考慮導向登入頁面
+      setFailedMessage('您尚未登入，請先登入！')
       return
     }
 
@@ -249,7 +274,7 @@ const PasswordContent = () => {
               value={passwords.newPassword}
               onChange={handlePasswordChange}
               onBlur={(e) => validateField('newPassword', e.target.value)}
-              placeholder="需包含大小寫英文字母及數字，長度8-20碼"
+              placeholder="需包含大小寫英文字母及數字，長度8-20碼 (不含空白)"
               className={`${errors.newPassword ? styles.errorInput : ''}`}
               required
             />
