@@ -3,6 +3,7 @@ import db from "../utils/connect-mysql.js";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import authenticateToken from "../utils/authenticateToken.js"; // 引入 authenticateToken 自訂的中介軟體
 
 const router = express.Router();
 
@@ -288,35 +289,20 @@ router.get("/api", async (req, res) => {
 });
 
 // 取得單一會員資料 API
-router.get("/api/:id", async (req, res) => {
-  // 加入 JWT 驗證，確保只有已登入且為本人的使用者才能存取
-  // --- JWT 驗證開始 ---
-  const authHeader = req.get("Authorization");
-  console.log("Auth Header:", authHeader); // 除錯，印出 Authorization 標頭的內容
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res
-      .status(401)
-      .json({ success: false, error: "未經授權：缺少 Token", debug: { authHeader } });
-  }
-  const token = authHeader.slice(7);
-  let decodedToken;
-  try {
-    decodedToken = jwt.verify(token, process.env.JWT_KEY);
-  } catch (error) {
-    return res.status(401).json({ success: false, error: "未經授權：無效的 Token" });
-  }
+router.get("/api/:id", authenticateToken, async (req, res) => {
+  // --- JWT 驗證已由 authenticateToken 中介軟體處理 ---
+  // 現在可以直接從 req.user 獲取 JWT payload 中的資訊
 
   // 檢查請求的 user_id 是否與 token 中的 user_id 相符
-  // decodedToken.user_id 是從 JWT payload 中解出來的
+  // req.user.user_id 是從 JWT payload 中解出來的 (由 authenticateToken 中介軟體設定)
   // req.params.id 由 URL 路徑中取得，+req.params.id 將字串轉為數字
-  if (decodedToken.user_id !== +req.params.id) {
+  if (req.user.user_id !== +req.params.id) {
     return res.status(403).json({ success: false, error: "禁止存取：您無權存取此會員資料" });
   }
-  // --- JWT 驗證結束 ---
+  // --- 權限檢查結束 ---
 
   try {
-    const userId = req.params.id;
+    const userIdFromParams = req.params.id; // 雖然 token 裡有，但此 API 設計是從 URL 取 id
     const sql = `
       SELECT 
         user_id, 
@@ -331,14 +317,14 @@ router.get("/api/:id", async (req, res) => {
       FROM users 
       WHERE user_id=?
     `;
-    const [rows] = await db.query(sql, [userId]);
+    const [rows] = await db.query(sql, [userIdFromParams]);
 
     if (!rows.length) {
       return res.status(404).json({ success: false, error: "找不到會員資料" });
     }
 
     const userProfile = rows[0];
-    res.json({ success: true, rows: userProfile }); // 注意：保持 data.rows 的結構
+    res.json({ success: true, rows: userProfile });
   } catch (error) {
     console.error("取得會員資料 API 錯誤:", error);
     res.status(500).json({ success: false, error: "伺服器錯誤" });
@@ -489,7 +475,7 @@ router.put("/api/:id", async (req, res) => {
   }
 });
 
-//刪除食譜
+// 刪除食譜
 router.delete("/api/:id", async (req, res) => {
   try {
     const [result] = await db.query("DELETE FROM recipes WHERE id=?", [req.params.id]);

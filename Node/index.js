@@ -36,7 +36,9 @@ import linePayTestRouter from "./routes/line-pay-test-only.js";
 // 設定上傳大頭貼圖片的路由
 import uploadAvatarsRouter from "./routes/upload-avatars.js";
 // 設定orderItems的路由
-import orderItemsRouter from './routes/orderItems.js'; 
+import orderItemsRouter from "./routes/orderItems.js";
+// 設定我的收藏的路由
+import favoritesRouter from "./routes/favorites.js";
 
 const MySQLStore = mysql_session(session);
 const sessionStore = new MySQLStore({}, db);
@@ -135,11 +137,13 @@ app.use("/api/orders", orderRouter);
 // 連到會員註冊
 app.use("/register", registerRouter);
 // 連到 EC-PAY 頁面
-app.use('/api/ecpay-test-only', paymentRouter);
+app.use("/api/ecpay-test-only", paymentRouter);
 // 連到 line-pay 頁面
-app.use('/api/line-pay-test-only', linePayTestRouter);
+app.use("/api/line-pay-test-only", linePayTestRouter);
 // 連到order-items 路徑
-app.use('/api/order-items', orderItemsRouter);
+app.use("/api/order-items", orderItemsRouter);
+// 連到我的收藏
+app.use("/api/favorites", favoritesRouter);
 
 // 路由定義, 兩個條件: 1. 拜訪的 HTTP 方法, 2. 路徑
 app.get("/", (req, res) => {

@@ -45,15 +45,15 @@ const FavoritesContent = () => {
           </div>
         </div>
 
-        {/* 根據activeTab顯示對應的內容 */}
-        {activeTab === 'recipe' ? (
+        {/* 根據activeTab顯示對應的內容。ingredient：食材收藏、recipe：食譜收藏 */}
+        {activeTab === 'ingredient' ? (
           <div className={styles.list}>
             <div className={styles.tableHeader}>
               <div className={styles.headerCell}>圖片</div>
               <div className={styles.headerCell}>品名</div>
               <div className={styles.headerCell}>品牌</div>
               <div className={styles.headerCell}>價格</div>
-              <div className={styles.headerCell}>收藏時間</div>
+              <div className={styles.headerCell}>收藏</div>
               <div className={styles.headerCell}></div>
             </div>
 
