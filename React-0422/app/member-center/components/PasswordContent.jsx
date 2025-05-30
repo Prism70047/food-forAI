@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import styles from '../styles/password-content.module.scss'
 import { FaEye, FaEyeSlash } from '../../icons/icons'
 import { useAuth } from '@/hooks/auth-context'
@@ -178,7 +178,7 @@ const PasswordContent = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/api/change-password`, // 後端 API 路徑
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/api/change-password`, // 後端 API 路徑
         {
           method: 'PUT',
           headers: {

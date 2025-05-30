@@ -7,6 +7,11 @@
   flex-direction: column;
   margin-top: 60px;
 }
+.breadContainer {
+  width: 100%;
+  max-width: 1280px;
+  margin: 50px auto 15px auto;
+}
 
 /* Filter Section */
 .filterSection {
@@ -14,7 +19,7 @@
   max-width: 1280px;
   display: flex;
   justify-content: space-between;
-  margin: 20px auto ;
+  margin: 20px auto;
   padding: 10px;
   background-color: $color-background-error;
   border-radius: 30px;
@@ -111,7 +116,7 @@
         // 導覽列按鈕的預設樣式
         background-color: $color-background;
         color: $color-primary;
-        
+
         &:hover {
           background-color: lighten($color-primary, 35%);
         }

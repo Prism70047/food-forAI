@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import styles from '../styles/RestaurantDetail.module.css'
+import styles from '../src/styles/page-styles/RestaurantDetail.module.scss'
 import React from 'react'
 
 export default function Bread({ items }) {

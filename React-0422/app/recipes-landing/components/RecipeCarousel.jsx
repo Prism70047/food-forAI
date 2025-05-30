@@ -16,6 +16,12 @@ export default function RecipeCarousel() {
     }
   }
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
   return (
     <div
       id="carouselExampleFade"
@@ -34,6 +40,7 @@ export default function RecipeCarousel() {
               placeholder="HI~今天您想吃什麼？"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)} // 更新關鍵字
+              onKeyPress={handleKeyPress} // 鍵盤ENTER鍵後觸發
             />
             <button onClick={handleSearch}>
               <FaSearch className={styles.searchIcon} />

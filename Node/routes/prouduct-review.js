@@ -4,9 +4,8 @@ import fs from "node:fs/promises";
 import { z } from "zod";
 import moment from "moment-timezone";
 import upload from "../utils/upload-imgs.js";
-
+//這檔案用不到
 const router = express.Router();
-
 // 取得所有商品評論（但會依照分頁來分別顯示不同的資料)
 router.get('/api', async (req, res) => {
     try {

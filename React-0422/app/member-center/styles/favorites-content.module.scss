@@ -1,0 +1,359 @@
+.productFavoritesList {
+  min-width: 320px;
+  max-width: 1348px;
+}
+
+.taskbar {
+  display: flex;
+  width: 100%;
+  height: 40px; // 新增固定高度
+  align-items: center; // 改為 center 以垂直置中
+  gap: 12px;
+  font-family:
+    Inter,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+  justify-content: start;
+  flex-wrap: wrap;
+
+  @media (max-width: 991px) {
+    max-width: 100%;
+    white-space: initial;
+    height: auto; // RWD 時允許自動調整高度
+    min-height: 40px; // RWD 時保持最小高度
+  }
+}
+
+.favoritesBtn {
+  height: 40px;
+  display: flex;
+  min-width: 200px;
+  align-items: center;
+  font-family:
+    Noto Sans TC,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  justify-content: start;
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 32px;
+  max-width: 300px;
+
+  @media (max-width: 991px) {
+    white-space: initial;
+    min-width: 100%;
+    max-width: 100%;
+    width: 100%;
+  }
+  .btnRecipe,
+  .btnIngredient {
+    height: 40px;
+    padding: 0 14px; //padding-left/right
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex: 1;
+    flex-shrink: 1;
+    flex-basis: 0%;
+
+    &.active {
+      background-color: #df6c2d;
+      color: #fff;
+    }
+  }
+}
+
+.btnRecipe {
+  color: #df6c2d;
+  border-radius: 8px 0 0 8px;
+  border: 2px solid #df6c2d;
+  background-color: #faf8f9;
+
+  &.active {
+    color: #fff;
+    background-color: #df6c2d;
+  }
+}
+
+.btnIngredient {
+  color: #fff;
+  border-radius: 0 8px 8px 0;
+  background-color: #df6c2d;
+  border: 2px solid #df6c2d;
+
+  &:not(.active) {
+    color: #df6c2d;
+    background-color: #faf8f9;
+  }
+}
+
+.searchInput {
+  height: 40px; // 設定固定高度
+  min-width: 200px;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--Color5, #ececec);
+  opacity: 0.8;
+  display: flex;
+  min-height: 43px;
+  padding: 0 16px; // 調整 padding 以配合新高度
+  gap: 8px;
+  color: #a09b95;
+  letter-spacing: 0.42px;
+  justify-content: start;
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  height: auto;
+  align-self: stretch;
+  background-color: #faf8f9;
+
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+}
+
+.searchIcon {
+  aspect-ratio: 1;
+  object-fit: contain;
+  object-position: center;
+  width: 16px;
+  align-self: stretch;
+  margin: auto 0;
+  flex-shrink: 0;
+}
+
+.searchPlaceholder {
+  color: #a09b95;
+  align-self: stretch;
+  margin: auto 0;
+  width: 257px;
+}
+
+.filter {
+  height: 40px; // 設定固定高度
+  min-height: 40px;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  flex-wrap: wrap;
+  border-radius: 8px;
+  border: 1px solid var(--Color1, #df6c2d);
+  display: flex;
+  padding: 0 12px;
+  gap: 4px;
+  color: #df6c2d;
+  letter-spacing: 0.42px;
+  height: auto;
+  align-self: stretch;
+  background-color: #faf8f9;
+
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+}
+
+.filterText {
+  color: #df6c2d;
+  align-self: stretch;
+  margin: auto 0;
+}
+
+.filterIcon {
+  aspect-ratio: 10/9;
+  object-fit: contain;
+  object-position: center;
+  width: 10px;
+  fill: #df6c2d;
+  align-self: stretch;
+  margin: auto 0;
+  flex-shrink: 0;
+}
+
+.list {
+  margin-top: 12px;
+  width: 100%;
+
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+}
+
+.tableHeader {
+  align-items: stretch;
+  border-radius: 8px;
+  display: flex;
+  width: 100%;
+  padding: 12px 0;
+  font-family:
+    Noto Sans TC,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 16px;
+  color: #faf8f9;
+  font-weight: 400;
+  white-space: nowrap;
+  letter-spacing: 0.48px;
+  justify-content: start;
+  flex-wrap: wrap;
+  background-color: #df6c2d;
+
+  @media (max-width: 991px) {
+    max-width: 100%;
+    white-space: initial;
+  }
+}
+
+.headerCell {
+  color: #faf8f9;
+  padding-right: 12px;
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 36px;
+
+  &:first-child {
+    min-width: 100px;
+    padding: 0 24px;
+    flex-basis: 0%;
+
+    @media (max-width: 991px) {
+      padding: 0 20px;
+    }
+  }
+
+  &:last-child {
+    width: 120px;
+    flex-basis: 48px;
+    max-width: 120px;
+
+    @media (max-width: 991px) {
+      display: none; // 在RWD時隱藏最後一個空白表頭
+    }
+  }
+}
+
+.tableRow {
+  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #eff0f2;
+  display: flex;
+  margin-top: 8px;
+  width: 100%;
+  padding: 12px 0;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-height: 84px; // 添加最小高度確保足夠空間
+
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+.imageCell {
+  display: flex;
+  min-width: 100px;
+  padding: 0 24px;
+  align-items: center;
+  gap: 16px;
+  justify-content: start;
+  height: 100%;
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
+
+  @media (max-width: 991px) {
+    padding: 0 20px;
+  }
+}
+
+.productImage {
+  background-color: #d9d9d9;
+  align-self: stretch;
+  display: flex;
+  min-height: 60px;
+  margin: auto 0;
+  width: 60px;
+  height: 60px;
+}
+
+.dataCell {
+  color: #464748;
+  align-self: center; // 改為 center
+  display: flex; // 添加 display: flex
+  align-items: center; // 添加 align-items: center
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 36px;
+  padding-right: 12px;
+  gap: 16px;
+  font-family:
+    Ubuntu,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+  line-height: 1.6;
+  height: 100%;
+
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+}
+
+.actionCell {
+  display: flex;
+  padding-right: 24px;
+  align-items: center;
+  gap: 16px;
+  font-family: sans-serif;
+  font-size: 14px;
+  color: #fff;
+
+  @media (max-width: 991px) {
+    padding: 12px 20px; // 調整RWD時的間距
+    width: 100%; // 讓取消收藏按鈕占滿寬度
+    justify-content: center; // 置中對齊
+  }
+}
+
+.unfavoriteBtn {
+  color: #fff;
+  min-width: 30px;
+  border-radius: 6px;
+  align-self: stretch;
+  margin: auto 0;
+  width: 100%;
+  padding: 4px 16px;
+  flex: 1;
+  flex-shrink: 1;
+  flex-basis: 0%;
+  background-color: #df6c2d;
+  border: none;
+  cursor: pointer;
+
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+
+  &:hover {
+    background-color: darken(#df6c2d, 5%);
+  }
+}

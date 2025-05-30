@@ -5,6 +5,7 @@ import styles from '../src/styles/Header.module.scss'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/auth-context'
 import { FaCartShopping, FaUser } from '../icons/icons'
+import { usePathname } from 'next/navigation'
 
 const Header = () => {
   const { auth, logout } = useAuth()
@@ -14,6 +15,8 @@ const Header = () => {
     setIsDropdownOpen(!isDropdownOpen)
   }
 
+  const pathname = usePathname()
+
   return (
     <div className={styles.navbar}>
       <span>
@@ -22,12 +25,23 @@ const Header = () => {
         </Link>
         <div className={styles.navList}>
           <Link href="/recipes-landing">
-            <button>
+            <button
+              className={
+                pathname.startsWith('/recipes-landing') ||
+                pathname.startsWith('/recipes')
+                  ? styles.activeNavBtn
+                  : ''
+              }
+            >
               <h3>美味食譜</h3>
             </button>
           </Link>
           <Link href="/products">
-            <button>
+            <button
+              className={
+                pathname.startsWith('/products') ? styles.activeNavBtn : ''
+              }
+            >
               <h3>食材商城</h3>
             </button>
           </Link>
@@ -36,13 +50,23 @@ const Header = () => {
               <h3>快速登入測試</h3>
             </button>
           </Link>
+
           <Link href="/restaurants">
-            <button>
+            <button
+              className={
+                pathname.startsWith('/restaurants') ? styles.activeNavBtn : ''
+              }
+            >
               <h3>精選文章</h3>
             </button>
           </Link>
+
           <Link href="/contact">
-            <button>
+            <button
+              className={
+                pathname.startsWith('/contact') ? styles.activeNavBtn : ''
+              }
+            >
               <h3>常見問題</h3>
             </button>
           </Link>
@@ -50,8 +74,12 @@ const Header = () => {
 
         {/* 👇會員下拉式選單 */}
         <div className={styles.navFunction}>
-          <div style={{ position: 'relative' }}>
-            <button alt="User" onClick={toggleDropdown}>
+          <div
+            style={{ position: 'relative' }}
+            onMouseEnter={() => setIsDropdownOpen(true)} // 滑鼠移入時打開選單
+            onMouseLeave={() => setIsDropdownOpen(false)} // 滑鼠移出時關閉選單
+          >
+            <button alt="User">
               <div>
                 <FaUser />
               </div>
@@ -59,7 +87,7 @@ const Header = () => {
             {isDropdownOpen && (
               <ul className={styles.dropdownMenu}>
                 <li>
-                  {auth.id ? (
+                  {auth.user_id ? (
                     <div>{auth.username}</div>
                   ) : (
                     <Link href="/login">
@@ -69,7 +97,9 @@ const Header = () => {
                   {/* 如果已經登入，顯示會員名稱，否則顯示登入/註冊按鈕 */}
                 </li>
                 <li>
-                  <a href="">會員中心</a>
+                  <Link href="/member-center">
+                    <div>會員中心</div>
+                  </Link>
                 </li>
                 {/* <li>
                   <a href="">我的收藏</a>
@@ -77,19 +107,22 @@ const Header = () => {
                 <li>
                   <a href="">我的訂單</a>
                 </li>
-                <li className="nav-item">
-                  {/* 如果已經登入，顯示登出按鈕 */}
-                  <a
-                    className="nav-link"
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      logout()
-                    }}
-                  >
-                    登出
-                  </a>
-                </li>
+
+                {typeof auth.user_id === 'number' && auth.user_id > 0 && (
+                  <li className="nav-item">
+                    {/* 如果已經登入，顯示登出按鈕 */}
+                    <a
+                      className="nav-link"
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        logout()
+                      }}
+                    >
+                      登出
+                    </a>
+                  </li>
+                )}
               </ul>
             )}
           </div>

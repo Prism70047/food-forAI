@@ -12,6 +12,8 @@ import { API_SERVER } from '@/config/api-path'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/auth-context'
 
+import PageTransition from '@/app/components/PageTransition'
+
 import {
   HiViewGridAdd,
   HiOutlineViewGridAdd,
@@ -72,10 +74,10 @@ export default function RecipesLandingPage() {
 
   // 從後端獲取收藏狀態
   useEffect(() => {
-    // console.log('Authorization Token:', auth.token) // 檢查 token 是否正確
+    console.log('Authorization Token:', auth) // 檢查 token 是否正確
 
     const fetchFavorites = async () => {
-      // console.log('Authorization Token:', auth.token)
+      console.log('Authorization Token:', auth.token)
       try {
         const response = await fetch(`${API_SERVER}/recipes/api/favorite/get`, {
           headers: {
@@ -116,7 +118,7 @@ export default function RecipesLandingPage() {
         Authorization: `Bearer ${auth.token}`,
       },
       body: JSON.stringify({
-        userId: auth.id,
+        userId: auth.user_id,
         recipeId,
         isFavorite: newFavoriteStatus,
       }),
@@ -155,401 +157,407 @@ export default function RecipesLandingPage() {
 
   return (
     <div>
-      {/* 版首輪播 Start */}
-      <RecipeCarousel />
-      {/* 版首輪播 END */}
+      <PageTransition>
+        {/* 版首輪播 Start */}
+        <RecipeCarousel />
+        {/* 版首輪播 END */}
 
-      <div className={styles.container}>
-        {/* 食譜ICON選單 Start */}
-        <div className={styles.categoriesContainer}>
-          <button onClick={handlePrev} disabled={visibleRange[0] === 0}>
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/53f72b1cdd510a8160b76260d08cccc39de9e6a2?placeholderIfAbsent=true"
-              className={styles.arrowIcon}
-              alt="Left arrow"
-            />
-          </button>
-          <div className={styles.categoriesWrapper}>
-            {categories
-              .slice(visibleRange[0], visibleRange[1])
-              .map((category, index) => (
-                <button
-                  key={index}
-                  className={styles.categoryIcon}
-                  onClick={() => {
-                    if (category.name === '總覽') {
-                      router.push('/recipes-landing/list')
-                    } else {
-                      handleCategory(category.name)
-                    }
-                  }}
-                >
-                  {category.icon}
-                  {category.name}
-                </button>
-              ))}
+        <div className={styles.container}>
+          {/* 食譜ICON選單 Start */}
+          <div className={styles.categoriesContainer}>
+            <button onClick={handlePrev} disabled={visibleRange[0] === 0}>
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/53f72b1cdd510a8160b76260d08cccc39de9e6a2?placeholderIfAbsent=true"
+                className={styles.arrowIcon}
+                alt="Left arrow"
+              />
+            </button>
+            <div className={styles.categoriesWrapper}>
+              {categories
+                .slice(visibleRange[0], visibleRange[1])
+                .map((category, index) => (
+                  <button
+                    key={index}
+                    className={styles.categoryIcon}
+                    onClick={() => {
+                      if (category.name === '總覽') {
+                        router.push('/recipes-landing/list')
+                      } else {
+                        handleCategory(category.name)
+                      }
+                    }}
+                  >
+                    {category.icon}
+                    {category.name}
+                  </button>
+                ))}
+            </div>
+            <button
+              onClick={handleNext}
+              disabled={visibleRange[1] >= categories.length}
+            >
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/48cafdb4ef4bb734d63a486bf58abbe94c28b5d3?placeholderIfAbsent=true"
+                className={styles.arrowIcon}
+                alt="Right arrow"
+              />
+            </button>
           </div>
-          <button
-            onClick={handleNext}
-            disabled={visibleRange[1] >= categories.length}
-          >
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/48cafdb4ef4bb734d63a486bf58abbe94c28b5d3?placeholderIfAbsent=true"
-              className={styles.arrowIcon}
-              alt="Right arrow"
-            />
-          </button>
+          {/* 食譜ICON選單 END */}
+          {/* 確認資料有沒有拉對用的 */}
+          {/* <div>{JSON.stringify(data)}</div> */}
+          {/* 食譜菜單 Start */}
+
+          {/* 肉食 */}
+          {activeCategory === '肉食' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-10.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>肉食</div>
+                  <button
+                    onClick={() => handleSearch('肉食')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('肉食'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「肉食」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 蔬食 */}
+          {activeCategory === '蔬食' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-06.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>蔬食</div>
+                  <button
+                    onClick={() => handleSearch('蔬食')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('蔬食'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「蔬食」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 甜點 */}
+          {activeCategory === '甜點' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-07.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>甜點</div>
+                  <button
+                    onClick={() => handleSearch('甜點')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('甜點'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「甜點」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 飯食 */}
+          {activeCategory === '飯食' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-08.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>飯食</div>
+                  <button
+                    onClick={() => handleSearch('飯食')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('飯食'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「飯食」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 異國 */}
+          {activeCategory === '異國' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-09.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>異國</div>
+                  <button
+                    onClick={() => handleSearch('異國')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('異國'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「異國」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 生鮮 */}
+          {activeCategory === '生鮮' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-10.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>生鮮</div>
+                  <button
+                    onClick={() => handleSearch('生鮮')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('生鮮'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「生鮮」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 糕點 */}
+          {activeCategory === '糕點' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-11.webp"
+                    className={styles.categoryBackground}
+                    alt="Desserts background"
+                  />
+                  <div className={styles.categoryTitle}>糕點</div>
+                  <button
+                    onClick={() => handleSearch('糕點')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('糕點'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「糕點」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* 麵食 */}
+          {activeCategory === '麵食' && (
+            <div className={styles.recipeSection}>
+              <div className={styles.recipeBlock}>
+                <div className={styles.recipeCategory}>
+                  <img
+                    src="/images/recipes-img/recipes_landing-12.webp"
+                    alt="Noodle background"
+                  />
+                  <div className={styles.categoryTitle}>麵食</div>
+                  <button
+                    onClick={() => handleSearch('麵食')}
+                    className={styles.viewMoreButton}
+                  >
+                    <h2>看更多</h2>
+                  </button>
+                </div>
+                <div className={styles.recipeCardsSection}>
+                  <div className={styles.recipeCardsContainer}>
+                    {data?.rows
+                      .filter((recipe) => recipe.categories?.includes('麵食'))
+                      .sort((a, b) => a.id - b.id) // 按ID穩定排序
+                      .slice(0, 6) // 過濾出分類為「麵食」的資料，取前6筆
+                      .map((recipe) => (
+                        <RecipeCard
+                          key={recipe.id}
+                          id={recipe.id}
+                          image={recipe.image}
+                          title={recipe.recipe_title}
+                          description={recipe.recipe_description}
+                          initialFavorite={favorites[recipe.id] || false}
+                          onFavoriteToggle={toggleFavorite}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        {/* 食譜ICON選單 END */}
-        {/* 確認資料有沒有拉對用的 */}
-        {/* <div>{JSON.stringify(data)}</div> */}
-        {/* 食譜菜單 Start */}
 
-        {/* 麵食 */}
-        {activeCategory === '麵食' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="/images/recipes-img/recipes_landing-noodle.webp"
-                  alt="Noodle background"
-                />
-                <div className={styles.categoryTitle}>麵食</div>
-                <button
-                  onClick={() => handleSearch('麵食')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('麵食'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「麵食」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 肉食 */}
-        {activeCategory === '肉食' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>肉食</div>
-                <button
-                  onClick={() => handleSearch('肉食')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('肉食'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「肉食」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 蔬食 */}
-        {activeCategory === '蔬食' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>蔬食</div>
-                <button
-                  onClick={() => handleSearch('蔬食')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('蔬食'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「蔬食」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 甜點 */}
-        {activeCategory === '甜點' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>甜點</div>
-                <button
-                  onClick={() => handleSearch('甜點')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('甜點'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「甜點」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 飯食 */}
-        {activeCategory === '飯食' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>飯食</div>
-                <button
-                  onClick={() => handleSearch('飯食')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('飯食'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「飯食」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 異國 */}
-        {activeCategory === '異國' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>異國</div>
-                <button
-                  onClick={() => handleSearch('異國')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('異國'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「異國」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 生鮮 */}
-        {activeCategory === '生鮮' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>生鮮</div>
-                <button
-                  onClick={() => handleSearch('生鮮')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('生鮮'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「生鮮」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* 糕點 */}
-        {activeCategory === '糕點' && (
-          <div className={styles.recipeSection}>
-            <div className={styles.recipeBlock}>
-              <div className={styles.recipeCategory}>
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/342df7d551f513a8966757cc07c7a877c1abf5eb?placeholderIfAbsent=true"
-                  className={styles.categoryBackground}
-                  alt="Desserts background"
-                />
-                <div className={styles.categoryTitle}>糕點</div>
-                <button
-                  onClick={() => handleSearch('糕點')}
-                  className={styles.viewMoreButton}
-                >
-                  <h2>看更多</h2>
-                </button>
-              </div>
-              <div className={styles.recipeCardsSection}>
-                <div className={styles.recipeCardsContainer}>
-                  {data?.rows
-                    .filter((recipe) => recipe.categories?.includes('糕點'))
-                    .sort((a, b) => a.id - b.id) // 按ID穩定排序
-                    .slice(0, 6) // 過濾出分類為「糕點」的資料，取前6筆
-                    .map((recipe) => (
-                      <RecipeCard
-                        key={recipe.id}
-                        id={recipe.id}
-                        image={recipe.image}
-                        title={recipe.recipe_title}
-                        description={recipe.recipe_description}
-                        initialFavorite={favorites[recipe.id] || false}
-                        onFavoriteToggle={toggleFavorite}
-                      />
-                    ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 你可能會喜歡 Start */}
-      <div className={styles.featuredSection}>
-        <div>
-          <h2>你可能會喜歡</h2>
-          <div className={styles.featuredContainer}>
-            {data?.rows
-              /* 減去 0.5，就會得到一個介於 -0.5 到 0.5 之間的值。
+        {/* 你可能會喜歡 Start */}
+        <div className={styles.featuredSection}>
+          <div>
+            <h2>你可能會喜歡</h2>
+            <div className={styles.featuredContainer}>
+              {data?.rows
+                /* 減去 0.5，就會得到一個介於 -0.5 到 0.5 之間的值。
               這個值正負隨機，所以 .sort() 的比較結果也就隨機，從而讓陣列被隨機打亂。 */
-              .sort(() => Math.random() - 0.5) // 隨機打亂陣列
-              .slice(0, 5) // 取出前 6 筆資料
-              .map((recipe) => (
-                <div key={recipe.id} className={styles.featuredCard}>
-                  <Link key={recipe.id} href={`/recipes/${recipe.id}`} passHref>
-                    <div className={styles.featuredCardImage}>
-                      <img src={recipe.image} alt="Featured recipe" />
-                    </div>
-                    <h2>{recipe.recipe_title}</h2>
-                  </Link>
-                </div>
-              ))}
+                .sort(() => Math.random() - 0.5) // 隨機打亂陣列
+                .slice(0, 5) // 取出前 6 筆資料
+                .map((recipe) => (
+                  <div key={recipe.id} className={styles.featuredCard}>
+                    <Link
+                      key={recipe.id}
+                      href={`/recipes/${recipe.id}`}
+                      passHref
+                    >
+                      <div className={styles.featuredCardImage}>
+                        <img src={recipe.image} alt="Featured recipe" />
+                      </div>
+                      <h2>{recipe.recipe_title}</h2>
+                    </Link>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
-      </div>
-      {/* 你可能會喜歡 End */}
+        {/* 你可能會喜歡 End */}
+      </PageTransition>
     </div>
   )
 }

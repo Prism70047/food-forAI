@@ -1,3 +1,6 @@
+html, body {
+  height: 100%;
+}
 /* 基本重置和通用樣式 */
 body {
   font-family: Arial, sans-serif; /* 您可以選擇更適合的字體 */
@@ -121,18 +124,28 @@ main .container > h1 {
 
 .checkout-layout {
   display: flex;
+  align-items: flex-start;
   gap: 30px; /* 左右欄位間距 */
 }
 
 .checkout-left {
   flex: 2; /* 左側欄位佔比較大 */
-  display: flex;
-  flex-direction: column;
-  gap: 20px; /* 左側內部區塊間距 */
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* gap: 20px; 左側內部區塊間距  */
 }
 
 .checkout-right {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 80px;
+  transform: translateY(-0%);
+  align-self: flex-start;
+  width: 300px;
+  z-index: 10;
   flex: 1; /* 右側欄位佔比較小 */
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 /* 2. 購物清單區塊 */

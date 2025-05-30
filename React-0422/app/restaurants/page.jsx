@@ -72,14 +72,14 @@ export default function RestaurantsPage() {
 
   return (
     <>
-      <Bread items={[{ text: '首頁', href: '/' }, { text: '餐廳列表' }]} />
+      {/* <Bread items={[{ text: '首頁', href: '/' }, { text: '餐廳列表' }]} /> */}
       <div className={styles.pageContainer}>
-        {/* <div>{JSON.stringify(data)}</div> */}
+        {/* 版頭 */}
         <div className={styles.heroSection}>
           <div className={styles.heroContentWrapper}>
             <div className={styles.heroContent}>
-              <h1 className={styles.heroTitle}>精選餐廳推薦</h1>
-              <p className={styles.heroDescription}>
+              <h1>精選餐廳推薦</h1>
+              <p>
                 探索台北最具特色的美食餐廳，從傳統小吃到高級料理，滿足您的味蕾享受
               </p>
             </div>
@@ -92,17 +92,10 @@ export default function RestaurantsPage() {
                   setSearchTerm(e.target.value)
                   setActivePage(1)
                 }}
-                className={styles.searchInput}
               />
-              <button
-                className={styles.searchButton}
-                onClick={() => setSearchTerm(searchTerm)}
-              >
-                搜尋
-              </button>
+              <button onClick={() => setSearchTerm(searchTerm)}>搜尋</button>
             </div>
           </div>
-
           <div className={styles.heroImageContainer}>
             <img
               src="/images/restaurant/r01.webp"
@@ -112,12 +105,14 @@ export default function RestaurantsPage() {
           </div>
         </div>
 
+        {/* 餐廳介紹 */}
         <div className={styles.restaurantListSection}>
-          <div className={styles.sectionTitle}>精選餐廳推薦</div>
-          {/* // 將原本的 restaurants.map 改為 filteredRestaurants.map */}
+          <h1>餐廳介紹</h1>
           <div className={styles.restaurantList}>
             {filteredRestaurants.length > 0 ? (
+              
               filteredRestaurants.map((restaurant) => (
+                
                 <RestaurantCard
                   key={restaurant.id}
                   id={restaurant.id}
@@ -128,11 +123,14 @@ export default function RestaurantsPage() {
                 />
               ))
             ) : (
-              <div className={styles.noResults}>沒有找到符合條件的餐廳</div>
+              <p className={styles.noResults}>
+                沒有找到符合條件的餐廳，等等我們再增加新文章囉~
+              </p>
             )}
           </div>
         </div>
-
+        
+        {/* 頁碼 */}
         <div className={styles.pagination}>
           <img
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/53f72b1cdd510a8160b76260d08cccc39de9e6a2?placeholderIfAbsent=true"

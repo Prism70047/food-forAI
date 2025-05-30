@@ -113,7 +113,7 @@ router.post('/api/items', async (req, res) => {
         return res.status(401).json({ success: false, error: "Unauthorized: Missing or invalid token" });
     }
 
-    const uId = req.my_jwt.id; // 從解碼的 token 中取得 userId
+    const uId = req.my_jwt.user_id; // 從解碼的 token 中取得 userId
     const userId = parseInt(uId, 10);
 
       // ✨✨✨ 把 quantity 重新命名成 quantityToAdd 更清楚 ✨✨✨
@@ -222,10 +222,11 @@ router.put('/api/items/:cartItemId', async (req, res) => {
       const cartItemIdString = req.params.cartItemId;
       const cartItemId = parseInt(cartItemIdString, 10);
       const { quantity } = req.body; // 從 request body 獲取新的 quantity
+    
 
       // --- 基本輸入驗證 ---
       if (isNaN(cartItemId) || cartItemId <= 0) {
-        return res.status(400).json({ success: false, message: '購物車項目 ID (cartItemId) 請給個正常的正整數啦～ 🙏' });
+        return res.status(400).json({ success: false, message: '購物車項目 ID (cartItemId) 請給個正常的正整數啦～1 🙏' });
       }
       if (!quantity || isNaN(parseInt(quantity, 10)) || parseInt(quantity, 10) <= 0) {
         // 如果允許數量為0來刪除項目，這裡邏輯要調整，但通常建議用 DELETE API
@@ -281,7 +282,7 @@ router.delete('/api/items/:cartItemId', async (req, res) => {
       // --- 基本輸入驗證 ---
       if (isNaN(cartItemId) || cartItemId <= 0) {
         console.warn(`[後端 DELETE] 無效的 cartItemId: ${cartItemIdString}`);
-        return res.status(400).json({ success: false, message: '購物車項目 ID (cartItemId) 請給個正常的正整數啦～ 🙏' });
+        return res.status(400).json({ success: false, message: '購物車項目 ID (cartItemId) 請給個正常的正整數啦～2 🙏' });
       }
 
       // 執行刪除操作
@@ -401,7 +402,14 @@ router.put('/api/items/:cartItemId/select', async (req, res) => {
 // PUT - 更新使用者購物車所有項目的勾選狀態
 // API 路徑: /cart/api/items/select-all
 // ------------------------------------------------------------------------------------
-router.put('/api/items/select-all', async (req, res) => {
+router.post('/api/items/select-all', async (req, res) => {
+  // ✨✨✨ 在這裡加上偵錯的 console.log ✨✨✨
+  console.log('--- 後端 DEBUG START: /api/items/select-all ---');
+  console.log('時間:', new Date().toISOString());
+  console.log('請求的 req.body:', req.body);
+  console.log('請求的 req.params:', req.params); // 這個路由雖然設計上沒有路徑參數，但印出來看看無妨
+  console.log('請求的 req.my_jwt (如果有用JWT的話):', req.my_jwt);
+  // ✨✨✨ 偵錯 console.log 結束 ✨✨✨
     try {
         // 從 JWT 取得使用者 ID
         if (!req.my_jwt) {
@@ -410,7 +418,7 @@ router.put('/api/items/select-all', async (req, res) => {
                 message: '未授權的訪問'
             });
         }
-        const userId = req.my_jwt.id;
+        const userId = req.my_jwt.user_id;
         const { isSelected } = req.body;
 
         // 驗證輸入
@@ -440,7 +448,9 @@ router.put('/api/items/select-all', async (req, res) => {
             message: '更新全選狀態時發生錯誤',
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
+        console.error('--- 後端 DEBUG ERROR in /select-all ---:', error);
     }
+    console.log('--- 後端 DEBUG END: /api/items/select-all ---');
 });
 
 export default router;

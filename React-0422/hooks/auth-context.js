@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { JWT_LOGIN } from '@/config/api-path'
 
 const AuthContext = createContext()
 AuthContext.displayName = 'MyAuthContext'
@@ -23,6 +22,7 @@ const noAuth = {
   birthday: '',
   gender: '',
   address: '',
+  profile_picture_url: '',
 }
 
 // 元件
@@ -41,14 +41,11 @@ export function AuthContextProvider({ children }) {
   // 登入功能函式
   const login = async (email = '', password = '') => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/jwt-login`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
-        }
-      )
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/jwt-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
       const result = await response.json()
 
@@ -112,9 +109,7 @@ export function AuthContextProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider
-      value={{ auth, setAuth, login, logout, getAuthHeader, authInit }}
-    >
+    <AuthContext.Provider value={{ auth, setAuth, login, logout, getAuthHeader, authInit }}>
       {children}
     </AuthContext.Provider>
   )

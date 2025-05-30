@@ -5,6 +5,8 @@ import fs from "node:fs/promises";
 import { z } from "zod";
 import moment from "moment-timezone";
 import upload from "../utils/upload-imgs.js";
+import jwt from "jsonwebtoken";
+
 
 const router = express.Router();
 
@@ -15,6 +17,7 @@ router.get('/api/products', async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 15;
         const offset = (page - 1) * limit;
+        const user_id = req.my_jwt ? req.my_jwt.user_id : 0; // 如果有 JWT，則取得 user_id
 
         // 取得總筆數 (這部分不變)
         const [countResult] = await db.query('SELECT COUNT(*) AS total FROM food_products');
@@ -24,7 +27,11 @@ router.get('/api/products', async (req, res) => {
         // 取得分頁資料，並使用隨機排序
         // 這裡的關鍵就是把 ORDER BY id DESC 改成 ORDER BY RAND()
         const [rows] = await db.query(
-            'SELECT * FROM food_products ORDER BY RAND() LIMIT ? OFFSET ?',
+            `SELECT food_products.*, pf.id AS favorite_id FROM food_products 
+            LEFT JOIN (
+                SELECT * FROM product_favorites WHERE user_id=${user_id}
+            ) pf ON food_products.id = pf.product_id
+             LIMIT ? OFFSET ?`,
             [limit, offset]
         );
 
@@ -33,6 +40,7 @@ router.get('/api/products', async (req, res) => {
             rows,
             totalPages,
             currentPage: page,
+            user_id
         });
     } catch (err) {
         console.error("DB 錯誤：", err);
@@ -123,99 +131,62 @@ router.get('/api/products/filter', async (req, res) => {
 // 取得單一商品資料
 router.get('/api/products/:id', async (req, res) => {
     try {
+        const user_id = req.my_jwt ? req.my_jwt.user_id : 0;
         const productId = parseInt(req.params.id);
-        console.log('查詢商品 ID:', productId); // 除錯用
         
-        // 查詢產品資料
+        console.log('查詢商品:', { productId, user_id });
+
+        // 修改 SQL 查詢，加入 user_id 和收藏狀態
         const [productRows] = await db.query(
-            'SELECT * FROM food_products WHERE id = ?', 
-            [productId]
+            `SELECT 
+                food_products.*, 
+                CASE 
+                    WHEN pf.id IS NOT NULL THEN TRUE 
+                    ELSE FALSE 
+                END AS isFavorited,
+                ? AS user_id  -- 加入 user_id
+            FROM food_products 
+            LEFT JOIN (
+                SELECT id, product_id 
+                FROM product_favorites 
+                WHERE user_id = ?
+            ) pf ON food_products.id = pf.product_id
+            WHERE food_products.id = ?`,
+            [user_id, user_id, productId]
         );
         
-        console.log('查詢結果:', productRows); // 除錯用
-        
-        if (!productRows || !productRows.length) {
-            console.log('找不到商品:', productId); // 除錯用
+        console.log('查詢結果:', productRows);
+
+        if (!productRows.length) {
             return res.status(404).json({ 
                 success: false, 
-                error: "找不到產品",
-                debug: { queriedId: productId } 
+                message: "找不到商品",
+                debug: { queriedId: productId }
             });
         }
-        
-        const product = productRows[0];
-        console.log('返回商品資料:', product); // 除錯用
+
+        // 轉換回應資料
+        const product = {
+            ...productRows[0],
+            isFavorited: Boolean(productRows[0].isFavorited),
+            user_id: productRows[0].user_id
+        };
         
         res.json({ 
             success: true, 
-            data: product 
+            data: product
         });
+
     } catch (error) {
-        console.error('查詢商品錯誤:', error); // 除錯用
+        console.error('查詢商品錯誤:', error);
         res.status(500).json({ 
             success: false, 
-            error: error.message 
+            message: "查詢失敗",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
-// 加入收藏ＡＰＩ
-// http://localhost:3001/api/products/favorite
-router.post('/api/products/favorite', async (req, res) => {
-  const { user_id, product_id } = req.body;
 
-  if (!user_id || !product_id) {
-    return res.status(400).json({ success: false, message: '缺少 user_id 或 product_id' });
-  }
-
-  try {
-    // 檢查是否已經收藏
-    const [existing] = await db.query(
-      'SELECT * FROM favorites WHERE user_id = ? AND product_id = ?', 
-      [user_id, product_id]
-    );
-
-    if (existing.length > 0) {
-      return res.status(409).json({ success: false, message: '已收藏此商品' });
-    }
-
-    // 寫入收藏
-    await db.query(
-      'INSERT INTO favorites (user_id, product_id) VALUES (?, ?)', 
-      [user_id, product_id]
-    );
-
-    res.json({ success: true, message: '已加入收藏' });
-  } catch (err) {
-    console.error('新增收藏錯誤:', err);
-    res.status(500).json({ success: false, message: '伺服器錯誤' });
-  }
-});
-
-// 取消收藏 API
-// http://localhost:3001/api/products/unfavorite
-router.delete('/api/products/unfavorite', async (req, res) => {
-  const { user_id, product_id } = req.body;
-
-  if (!user_id || !product_id) {
-    return res.status(400).json({ success: false, message: '缺少 user_id 或 product_id' });
-  }
-
-  try {
-    const [result] = await db.query(
-      'DELETE FROM favorites WHERE user_id = ? AND product_id = ?', 
-      [user_id, product_id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ success: false, message: '找不到收藏紀錄' });
-    }
-
-    res.json({ success: true, message: '已取消收藏' });
-  } catch (err) {
-    console.error('取消收藏錯誤:', err);
-    res.status(500).json({ success: false, message: '伺服器錯誤' });
-  }
-});
 
 // 取得商品相關推薦 (隨機取得)
 router.get('/api/products/:id/recommendations', async (req, res) => {
@@ -317,130 +288,207 @@ router.get('/api/products/:id/comments', async (req, res) => {
 // 新增 API - 加入購物車
 router.post('/api/cart/add', async (req, res) => {
     try {
-        const { user_id, product_id, quantity = 1 } = req.body;
-        
-        // 驗證必要欄位
-        if (!user_id || !product_id) {
-            return res.status(400).json({ success: false, error: "缺少必要參數" });
+        // JWT 驗證
+        if (!req.my_jwt) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "請先登入" 
+            });
         }
+
+        const user_id = req.my_jwt.user_id;
+        const { product_id, quantity = 1 } = req.body;
         
-        // 檢查商品是否存在
+        console.log('加入購物車:', {
+            user_id,
+            product_id,
+            quantity,
+        });
+
+        // 檢查商品
         const [productResult] = await db.query(
-            'SELECT id, price FROM food_products WHERE id = ?',
+            'SELECT id, name, price FROM food_products WHERE id = ?',
             [product_id]
         );
         
         if (!productResult.length) {
-            return res.status(404).json({ success: false, error: "找不到商品" });
+            return res.status(404).json({ 
+                success: false, 
+                message: "找不到商品" 
+            });
         }
         
-        const productPrice = productResult[0].price;
+        const product = productResult[0];
         
-        // 檢查購物車是否已有此商品
+        // 檢查購物車現有數量
         const [cartResult] = await db.query(
-            'SELECT id, quantity FROM cart_items WHERE user_id = ? AND product_id = ?',
+            'SELECT cart_id, quantity FROM carts WHERE user_id = ? AND product_id = ?',
             [user_id, product_id]
         );
         
         let result;
         
         if (cartResult.length > 0) {
-            // 已有商品，更新數量
-            const newQuantity = cartResult[0].quantity + quantity;
+            // 累加商品數量
+            const currentQuantity = cartResult[0].quantity;
+            const newQuantity = currentQuantity + quantity;
+            
+            console.log('更新購物車數量:', {
+                原數量: currentQuantity,
+                新增數量: quantity,
+                更新後數量: newQuantity
+            });
             
             [result] = await db.query(
-                'UPDATE cart_items SET quantity = ?, updated_at = NOW() WHERE id = ?',
-                [newQuantity, cartResult[0].id]
+                'UPDATE carts SET quantity = ?, updated_at = NOW() WHERE cart_id = ?',
+                [newQuantity, cartResult[0].cart_id]
             );
             
             res.json({
                 success: true,
-                message: "已更新購物車商品數量",
+                message: `${product.name} 數量已更新`,
                 data: {
-                    cart_item_id: cartResult[0].id,
-                    quantity: newQuantity
+                    cart_id: cartResult[0].id,
+                    product_name: product.name,
+                    old_quantity: currentQuantity,
+                    added_quantity: quantity,
+                    new_quantity: newQuantity
                 }
             });
+            
         } else {
-            // 新增商品到購物車
+            // 新增購物車項目
             [result] = await db.query(
-                `INSERT INTO cart_items (user_id, product_id, quantity, created_at, updated_at)
-                VALUES (?, ?, ?, NOW(), NOW())`,
+                `INSERT INTO carts (user_id, product_id, quantity, updated_at)
+                VALUES (?, ?, ?, NOW())`,
                 [user_id, product_id, quantity]
             );
             
             res.json({
                 success: true,
-                message: "已加入購物車",
+                message: `${product.name} 已加入購物車`,
                 data: {
-                    cart_item_id: result.insertId,
+                    cart_id: result.insertId,
+                    product_name: product.name,
                     quantity: quantity
                 }
             });
         }
+        
     } catch (error) {
         console.error('加入購物車錯誤:', error);
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ 
+            success: false, 
+            message: "加入購物車失敗，請稍後再試",
+            error: error.message 
+        });
     }
 });
 
-// 新增 API - 加入願望清單
-router.post('/api/wishlist/add', async (req, res) => {
-    try {
-        const { user_id, product_id } = req.body;
-        
-        // 驗證必要欄位
-        if (!user_id || !product_id) {
-            return res.status(400).json({ success: false, error: "缺少必要參數" });
-        }
-        
-        // 檢查商品是否存在
-        const [productResult] = await db.query(
-            'SELECT id FROM food_products WHERE id = ?',
-            [product_id]
-        );
-        
-        if (!productResult.length) {
-            return res.status(404).json({ success: false, error: "找不到商品" });
-        }
-        
-        // 檢查願望清單是否已有此商品
-        const [wishlistResult] = await db.query(
-            'SELECT id FROM wishlist WHERE user_id = ? AND product_id = ?',
-            [user_id, product_id]
-        );
-        
-        if (wishlistResult.length > 0) {
-            // 已在願望清單中
-            return res.json({
-                success: true,
-                message: "商品已在願望清單中",
-                data: {
-                    wishlist_id: wishlistResult[0].id,
-                    already_exists: true
-                }
-            });
-        }
-        
-        // 新增商品到願望清單
-        const [result] = await db.query(
-            `INSERT INTO wishlist (user_id, product_id, created_at)
-            VALUES (?, ?, NOW())`,
-            [user_id, product_id]
-        );
-        
-        res.json({
-            success: true,
-            message: "已加入願望清單",
-            data: {
-                wishlist_id: result.insertId,
-                already_exists: false
-            }
-        });
-    } catch (error) {
-        console.error('加入願望清單錯誤:', error);
-        res.status(500).json({ success: false, error: error.message });
+// 加入/取消收藏
+router.post('/api/favorite', async (req, res) => {
+  try {
+    if (!req.my_jwt) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "請先登入" 
+      });
     }
+
+    const user_id = req.my_jwt.user_id;
+    const { product_id } = req.body;
+
+    // 檢查是否已收藏
+    const [favoriteResult] = await db.query(
+      'SELECT id FROM product_favorites WHERE user_id = ? AND product_id = ?',
+      [user_id, product_id]
+    );
+
+    if (favoriteResult.length > 0) {
+      // 已收藏，執行取消收藏
+      await db.query(
+        'DELETE FROM product_favorites WHERE user_id = ? AND product_id = ?',
+        [user_id, product_id]
+      );
+
+      res.json({
+        success: true,
+        message: "已取消收藏"
+      });
+    } else {
+      // 未收藏，執行加入收藏
+      await db.query(
+        'INSERT INTO product_favorites (user_id, product_id, created_at) VALUES (?, ?, NOW())',
+        [user_id, product_id]
+      );
+
+      res.json({
+        success: true,
+        message: "已加入收藏"
+      });
+    }
+
+  } catch (error) {
+    console.error('收藏操作失敗:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: "操作失敗，請稍後再試" 
+    });
+  }
 });
+
+// 獲取隨機商品排名 (前 10 名)
+router.get('/api/ranking', async (req, res) => {
+  try {
+    // 使用 RAND() 函數隨機排序
+    const [rows] = await db.query(
+      `SELECT 
+        id, 
+        name,
+        price,
+        original_price,
+        image_url,
+        brand,
+        category,
+        description
+      FROM food_products
+      ORDER BY RAND()  
+      LIMIT 10`
+    );
+
+    console.log('隨機查詢結果:', rows);
+
+    if (!rows.length) {
+      return res.json({
+        success: true,
+        message: '目前沒有商品資料',
+        rows: []
+      });
+    }
+
+  const productsWithImages = rows.map(product => ({
+  ...product,
+  image_url: product.image_url || '/images/products/default.jpg'
+}));
+
+
+    res.json({
+      success: true,
+      data: {
+        total: rows.length,
+        products: productsWithImages
+      }
+    });
+
+  } catch (error) {
+    console.error('獲取隨機商品失敗:', error);
+    res.status(500).json({ 
+      success: false,
+      message: '獲取商品資料失敗',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 
 export default router;

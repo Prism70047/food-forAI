@@ -1,22 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, use } from 'react'
 import styles from '../src/styles/page-styles/ProductList.module.scss'
 import { ProductCard } from '../components/ProductCard'
 import { GrPrevious, IoIosArrowBack } from '../icons/icons' // 使用 react-icons 套件
+import Bread from '@/app/components/Bread'
+import { useAuth } from '../../hooks/auth-context' // 引入你的 Auth hook
 
 // 在檔案開頭加入 API 基礎網址常數
 // 這個很棒
 const API_BASE_URL = 'http://localhost:3001/products' // 根據實際情況修改
-
-//API 請求函數
-const fetchAllProducts = async (page, limit = 12) => {
-  const response = await fetch(
-    `${API_BASE_URL}/api/products?page=${page}&limit=${limit}`
-  )
-  if (!response.ok) throw new Error('取得商品列表失敗')
-  return response.json()
-}
 
 const fetchFilteredProducts = async (params) => {
   const response = await fetch(
@@ -42,6 +35,21 @@ export default function ProductListPage() {
   const [maxPrice, setMaxPrice] = useState('') // 實際用於查詢的價格
   const [priceFilter, setPriceFilter] = useState({ min: null, max: null })
   const [error, setError] = useState(null) // 新增：錯誤狀態
+
+  const { auth, getAuthHeader } = useAuth() // 使用 auth context 拿 user.id
+
+  //API 請求函數
+  const fetchAllProducts = async (page, limit = 12) => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/products?page=${page}&limit=${limit}`,
+      {
+        headers: getAuthHeader(), // 使用 auth context 的 getAuthHeader 方法
+      }
+    )
+    if (!response.ok) throw new Error('取得商品列表失敗')
+    return response.json()
+  }
+
   //  當頁碼、分類、排序條件、搜尋關鍵字改變時，重新取得產品資料
   useEffect(() => {
     const getProducts = async () => {
@@ -211,6 +219,14 @@ export default function ProductListPage() {
 
   return (
     <div className={styles.container}>
+      {/* <div className={styles.breadContainer}>
+        <Bread
+          items={[
+            { text: '首頁', href: '/' },
+            { text: '食材商城', href: '' },
+          ]}
+        />
+      </div> */}
       {/* 篩選區塊 */}
       <div className={styles.filterSection}>
         <div className={styles.priceSearchContainer}>
@@ -309,11 +325,11 @@ export default function ProductListPage() {
                 key={product.id}
                 id={product.id}
                 name={product.name}
-                image={product.image || '/placeholder.jpg'}
+                image={product.image_url || '/placeholder.jpg'}
                 brand={product.brand}
                 price={product.price}
                 original_price={product.original_price}
-                initialFavorite={false}
+                initialFavorite={!!product.favorite_id} // 使用後端回傳的 is_favorite
               />
             ))
           )}

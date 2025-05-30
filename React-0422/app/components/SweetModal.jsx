@@ -25,11 +25,15 @@ export default function SweetModal({ show, onHide, title, message, icon }) {
 
 // 使用範例
 // import SweetModal from '@/app/components/SweetModal'
+
+//  const [showModal, setShowModal] = useState(false)
+
 {
   /* <SweetModal
   show={showModal}
-  onHide={() => setShowModal(false)}
+  onHide={() => setShowModal(true)}
   title="提示"
   message="這是一個訊息"
+  icon="info" // 可選 'success', 'error', 'warning', 'info', 'question'
 /> */
 }

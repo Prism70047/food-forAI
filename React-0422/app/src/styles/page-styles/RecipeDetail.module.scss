@@ -44,68 +44,111 @@
   }
 }
 
-// 05/22加的。有什麼樣式跑掉的話可以先註解或刪掉
-.recipeFavoriteButton {
-  // 覆蓋現有樣式，使其與卡片中的收藏按鈕一致
-  // position: absolute !important;
-  top: 10px !important;
-  right: 10px !important;
-  background: none !important;
-  border: none !important;
-  padding: 8px !important;
-  z-index: 10 !important;
+.breadHotBox {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.hotBox {
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+}
 
-  // 調整圖示大小與顏色
-  svg {
-    width: 24px;
-    height: 24px;
-    color: white;
-    transition: all 0.3s ease;
-
-    &:hover {
-      // color: #ff6b6b;
-      transform: scale(1.1);
-    }
-  }
-
-  &[aria-label='已收藏'] {
-    svg {
-      // color: #ff6b6b;
-      color: white;
-    }
+.favoriteBox02 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+  height: 100%;
+  border-radius: 20px;
+  padding: 10px 10px 5px 10px;
+  gap: 5px;
+  background: $color-special;
+  text-align: center;
+  h3 {
+    width: 100%;
+    background-color: #fff;
+    color: $color-primary;
+    padding: 5px 10px;
+    border-radius: 20px;
   }
 }
-// 05/22加的，與按讚有關的樣式
-.likeButton {
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #666;
 
+.favoriteBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 110px;
+  height: 100%;
+  border-radius: 20px;
+  padding: 10px 10px 5px 10px;
+  gap: 5px;
+  background: $color-special;
+  text-align: center;
+  h3 {
+    width: 100%;
+    background-color: #fff;
+    color: $color-primary;
+    padding: 5px 10px;
+    border-radius: 20px;
+  }
+}
+
+.FavoriteButton {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  p {
+    // font-size: 1.5rem;
+    margin-right: 5px;
+  }
+  button {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    font-size: 1.5rem;
+    color: #fff;
+  }
+  transition: all 0.3s;
   &:hover {
-    color: #1da1f2;
     transform: scale(1.1);
   }
-
-  &.liked {
-    color: #1da1f2;
+  &:active {
+    transform: scale(0.98);
   }
 }
 
 // 材料選單 Start
 .ingredientsSection {
-  align-self: center;
   display: flex;
+  flex-direction: column;
+  align-self: center;
   width: 1280px;
   gap: 30px;
   margin-bottom: 50px;
 }
 
-.ingredientCard {
+.ingredientCardContainer {
   position: relative;
-  flex: 1;
+  gap: 30px;
+  display: flex;
+  flex-direction: row;
+
+  .ingredientCard {
+    position: relative;
+    flex: 1;
+  }
+  @media (max-width: 991px) {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 10px;
+    .ingredientCard {
+      width: 100%;
+    }
+  }
 }
 
 .cardBody {
@@ -404,6 +447,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
 
     img {
       width: 80px;
@@ -413,6 +457,7 @@
 
     .userInfo {
       width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-self: flex-start;
@@ -576,11 +621,6 @@
     display: none;
   }
 
-  .ingredientCard,
-  .seasoningCard {
-    width: 100%;
-  }
-
   .cardBody {
     max-width: 100%;
   }
@@ -721,6 +761,19 @@
     gap: 10px;
     margin-bottom: 20px;
   }
+  .breadHotBox {
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+  }
+  .hotBox {
+    justify-content: center;
+    width: 100%;
+    .favoriteBox,
+    .favoriteBox02 {
+      width: 100%;
+    }
+  }
   .heroSection {
     margin-bottom: 20px;
   }
@@ -792,6 +845,15 @@
   align-items: center;
 }
 
+.breadContainer {
+  width: 100%;
+  max-width: 1280px;
+  margin: 50px auto 0px auto;
+  @media (max-width: 991px) {
+    padding: 0 20px;
+  }
+}
+
 /* 主要商品資訊區塊 */
 
 .productWrapper {
@@ -806,12 +868,20 @@
 /* 商品圖片 */
 .productImage {
   width: 100%;
-  min-height: 500px;
+  height: 100%;
+  max-height: 500px;
   flex: 1;
   object-fit: cover;
   border-radius: 30px;
   box-shadow: $card-shadow;
   overflow: hidden;
+}
+
+.productright {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 /* 商品資訊容器 */
@@ -834,8 +904,9 @@
   margin: 10px 0;
   align-items: center;
   justify-content: space-between;
-  .ratingSection {
-    color: $color-primary;
+
+  .starsContainer {
+    color: #ffd700;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -983,30 +1054,23 @@
   h2 {
     color: $color-primary;
   }
-  .quantityLabel {
-    font-size: 18px;
-    font-weight: 500;
-    color: #423c3a;
-  }
-}
-.quantityControls {
-  display: flex;
-  background-color: #fff;
-  border-radius: 30px;
-  border: 2px solid $color-primary;
-  padding: 5px;
-  align-items: center;
-  gap: 20px;
 
-  button {
-    width: 30px;
-    height: 30px;
-    gap: 10px;
+  .quantityControls {
+    display: flex;
+    background-color: #fff;
+    border-radius: 30px;
+    border: 2px solid $color-primary;
+    padding: 5px;
+    align-items: center;
+    gap: 20px;
+    .quantityInput {
+      border: none;
+      outline: none;
+    }
 
-    .quantityButton {
-      width: 36px;
-      height: 36px;
-      border: 2px solid #ff5a00;
+    button {
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       background: $color-primary;
       color: #fff;
@@ -1022,21 +1086,33 @@
       }
 
       &:disabled {
-        border-color: #ccc;
-        background-color: $color-background-error;
-        color: #fff;
+        opacity: 0.5;
         cursor: not-allowed;
-        &:active {
-          transform: none;
-        }
+      }
+
+      &:hover:not(:disabled) {
+        background: #f5f5f5;
       }
     }
 
-    .quantityValue {
-      min-width: 40px;
+    .quantityInput {
+      width: 60px;
+      height: 36px;
       text-align: center;
-      font-size: 20px;
-      font-weight: 700;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #ff5a00;
+      }
     }
   }
 }
@@ -1364,6 +1440,7 @@
   gap: 15px;
 
   .descriptionBlock {
+    width: 100%;
     background-image: url('../../../../public/images/design/bg-01.svg');
     background-repeat: no-repeat;
     background-size: cover;
@@ -1422,9 +1499,57 @@
   .commentsSection {
     padding: 0 20px;
     .reviewsSection {
-      display: none;
+      display: flex;
       width: 100%;
       align-items: start;
+    }
+  }
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 1280px;
+  margin-bottom: 1.5rem;
+  position: relative; // 新增相對定位
+
+  .reviewsTitle {
+    color: $color-primary;
+    font-size: $font-size-h1;
+    text-align: center; // 確保標題置中
+  }
+
+  .addReviewButton {
+    position: absolute; // 使用絕對定位
+    right: 0; // 靠右對齊
+    background-color: $color-primary;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: $font-weight-title;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+
+    &:hover {
+      background-color: $color-hover;
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+@media (max-width: 991px) {
+  .reviewHeader {
+    padding: 0 20px;
+    
+    .addReviewButton {
+      padding: 8px 16px;
     }
   }
 }

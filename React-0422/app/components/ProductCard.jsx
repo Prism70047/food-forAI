@@ -5,7 +5,7 @@ import styles from '../src/styles/ShopList.module.scss'
 import { MdFavorite, MdFavoriteBorder } from '../icons/icons'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../hooks/auth-context' //  引入你的 Auth hook
-
+import LoginModal from '@/app/components/LoginModal'
 export const ProductCard = ({
   id = 0,
   name = 'Product Name',
@@ -20,37 +20,36 @@ export const ProductCard = ({
   const [isFavorite, setIsFavorite] = useState(initialFavorite)
   const router = useRouter()
   const { auth } = useAuth() //  使用 auth context 拿 user.id
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
   const handleFavoriteClick = async (e) => {
     e.stopPropagation()
 
-    if (!auth?.id) {
-      alert('請先登入才能收藏商品')
+    if (!auth?.user_id) {
+      setShowLoginModal(true)
       return
     }
 
     const baseUrl = 'http://localhost:3001'
-    const endpoint = isFavorite
-      ? `${baseUrl}/api/products/unfavorite`
-      : `${baseUrl}/api/products/favorite`
-
-    const method = isFavorite ? 'DELETE' : 'POST'
 
     try {
-      const res = await fetch(endpoint, {
-        method,
+      const res = await fetch(`${baseUrl}/products/api/favorite`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`, // 加入 JWT token
         },
         body: JSON.stringify({
-          user_id: auth.id, // ✅ 使用登入者 ID
+          user_id: auth.user_id,
           product_id: id,
         }),
+        // credentials: 'include', // 確保 cookie 可以被發送
       })
 
+      const data = await res.json()
+
       if (!res.ok) {
-        const errorData = await res.json()
-        console.error('API 錯誤:', errorData)
+        console.error('API 錯誤:', data.message)
         return
       }
 
@@ -58,6 +57,9 @@ export const ProductCard = ({
       if (onFavoriteToggle) {
         onFavoriteToggle(id, !isFavorite)
       }
+
+      // 可以加入提示訊息
+      console.log(data.message)
     } catch (error) {
       console.error('fetch 錯誤:', error)
     }
@@ -84,16 +86,26 @@ export const ProductCard = ({
           <h3>{name}</h3>
         </div>
         <div>
-          <p>${original_price}</p>
-          <h2>${price}</h2>
+          <p>NT$ {Math.floor(original_price).toLocaleString()}</p>
+          <h2>NT$ {Math.floor(price).toLocaleString()}</h2>
         </div>
       </span>
+
       <button
         alt={isFavorite ? '已收藏' : '加入收藏'}
         onClick={handleFavoriteClick}
         className={`${styles.wishlistButton} ${isFavorite ? styles.active : ''}`}
       >
         {isFavorite ? <MdFavorite /> : <MdFavoriteBorder />}
+        <LoginModal
+          show={showLoginModal}
+          onHide={() => setShowLoginModal(false)}
+          message="需要登入才能使用喔！"
+          onNavigateToLogin={() => {
+            setShowLoginModal(false)
+            router.push('/login')
+          }}
+        />
       </button>
     </div>
   )

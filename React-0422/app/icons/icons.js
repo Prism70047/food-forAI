@@ -22,7 +22,7 @@ import {
   FaXTwitter,
   FaStar,
 } from 'react-icons/fa6'
-import { BiSolidBowlRice, BiLike } from 'react-icons/bi'
+import { BiSolidBowlRice, BiLike, BiSolidLike } from 'react-icons/bi'
 import { LuDessert, LuSalad } from 'react-icons/lu'
 import { TbMeat, TbBowlSpoon, TbHandFinger } from 'react-icons/tb'
 import { CiBowlNoodles } from 'react-icons/ci'
@@ -76,6 +76,7 @@ export {
   GiKitchenScale,
   PiJarLabelBold,
   BiLike,
+  BiSolidLike,
   TbBowlSpoon,
   IoIosAddCircle,
   IoIosArrowForward,

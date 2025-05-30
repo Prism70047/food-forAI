@@ -13,22 +13,28 @@ import useSWR from 'swr'
 export default function HomePage() {
   const fetcher = (url) => fetch(url).then((res) => res.json())
 
-  const { data, error } = useSWR(
-    `http://localhost:3001/products/api/products`,
+  // 獲取資料
+  const { data: rankingData, error: rankingError } = useSWR(
+    'http://localhost:3001/products/api/ranking',
     fetcher
   )
-
+  // 從 API 回應中解構資料
+  const rankingProducts = rankingData?.data?.products || []
   // 取得食譜
   const { data: recipesData, error: recipesError } = useSWR(
-    `http://localhost:3001/recipes/api`,
+    'http://localhost:3001/recipes/api',
     fetcher
   )
 
-  const isLoading = !data && !error
-  const products = data?.rows || {}
+  // 從 API 回應中解構食譜資料
   const recipes = recipesData?.rows || []
-  console.log(data)
-
+  // const isLoading = !data && !error
+  // const products = data?.rows || {}
+  // const recipes = recipesData?.rows || []
+  // console.log(data)
+  // const rankingProducts = rankingData?.rows || []
+  console.log('rankingData:', rankingData)
+  console.log('rankingProducts:', rankingProducts)
   return (
     <div className={styles.homePage}>
       <SemicircleCarousel />
@@ -90,72 +96,51 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className={styles.topProductsSection}>
-          <div className={styles.topProductsShopCard}>
-            {data?.rows.slice(0, 3).map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                name={product.name}
-                image={product.image || '/placeholder.jpg'}
-                brand={product.brand}
-                price={product.price}
-                original_price={product.original_price}
-                initialFavorite={false}
-              />
-            ))}
-          </div>
-          <div className={styles.topProductsList}>
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>04</p>
-                <p>特選羊小排</p>
-              </Link>
+        {/* 錯誤處理 */}
+        {rankingError && (
+          <div className={styles.errorMessage}>無法載入排名資料</div>
+        )}
+
+        {/* 載入中狀態 */}
+        {!rankingData && !rankingError && (
+          <div className={styles.loadingSpinner}>載入中...</div>
+        )}
+
+        {/* 排名內容 */}
+        {rankingData && (
+          <div className={styles.topProductsSection}>
+            {/* 前三名商品卡片 */}
+            <div className={styles.topProductsShopCard}>
+              {rankingProducts.slice(0, 3).map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  image={product.image_url || '/placeholder.jpg'}
+                  brand={product.brand}
+                  price={product.price}
+                  original_price={product.original_price}
+                  initialFavorite={false}
+                />
+              ))}
             </div>
-            <hr />
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>05</p>
-                <p>北海道帝王蟹</p>
-              </Link>
-            </div>
-            <hr />
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>06</p>
-                <p>三線磯鱸 ( 黃雞魚 )</p>
-              </Link>
-            </div>
-            <hr />
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>07</p>
-                <p>龍膽石斑</p>
-              </Link>
-            </div>
-            <hr />
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>08</p>
-                <p>有機特級杏鮑菇</p>
-              </Link>
-            </div>
-            <hr />
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>09</p>
-                <p>日本山藥</p>
-              </Link>
-            </div>
-            <hr />
-            <div className={styles.productRankListItem}>
-              <Link href="">
-                <p>10</p>
-                <p>巴薩米克醋</p>
-              </Link>
+
+            {/* 4-10名列表 */}
+            <div className={styles.topProductsList}>
+              {rankingProducts.slice(3, 10).map((product, index) => (
+                <React.Fragment key={product.id}>
+                  <div className={styles.productRankListItem}>
+                    <Link href={`/products/${product.id}`}>
+                      <p>{String(index + 4).padStart(2, '0')}</p>
+                      <p>{product.name}</p>
+                    </Link>
+                  </div>
+                  {index < 6 && <hr />}
+                </React.Fragment>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 大廚上菜囉 */}

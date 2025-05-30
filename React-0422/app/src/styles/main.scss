@@ -52,7 +52,7 @@ a {
   color: inherit; // 保持與周圍文字一致
   transition: all 0.3s;
   &:hover {
-    transform: scale(1.02); // 放大卡片
+    transform: scale(1.02);
   }
   &:active {
     transform: scale(0.98);

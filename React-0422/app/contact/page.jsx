@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import styles from '../src/styles/page-styles/Contact.module.scss'
+import SweetModal from '@/app/components/SweetModal'
 import {
   RiCustomerService2Fill,
   FaCartShopping,
@@ -9,6 +10,7 @@ import {
 } from '../icons/icons'
 
 const ContactPage = () => {
+  const [showModal, setShowModal] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,7 +39,8 @@ const ContactPage = () => {
       })
 
       if (response.ok) {
-        alert('感謝您的留言，我們會盡快回覆！')
+        setShowModal(true)
+
         setFormData({
           name: '',
           email: '',
@@ -182,6 +185,13 @@ const ContactPage = () => {
             <button type="submit" className={styles.submitButton}>
               <h2> 送出</h2>
             </button>
+            <SweetModal
+              show={showModal}
+              onHide={() => setShowModal(true)}
+              title="發送成功!"
+              message="感謝您的留言，我們會盡快回覆！"
+              icon="info"
+            />
           </form>
         </div>
       </div>

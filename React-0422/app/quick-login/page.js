@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/auth-context'
 
 export default function QuickLoginPage() {
   const { login, auth } = useAuth()
+  console.log(auth)
   return (
     <div>
       <br />
@@ -40,7 +41,7 @@ export default function QuickLoginPage() {
       <hr />
       <hr />
       <div className="alert alert-success">登入的用戶: {auth.email}</div>
-      <div className="alert alert-success">登入的用戶ID: {auth.id}</div>
+      <div className="alert alert-success">登入的用戶ID: {auth.user_id}</div>
     </div>
   )
 }

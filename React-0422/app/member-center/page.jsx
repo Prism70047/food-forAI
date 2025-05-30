@@ -6,7 +6,7 @@ import styles from './styles/profile-content.module.scss'
 import Sidebar from './components/Sidebar'
 import ProfileContent from './components/ProfileContent'
 import PasswordContent from './components/PasswordContent'
-// import FavoritesContent from './components/FavoritesContent';
+import FavoritesContent from './components/FavoritesContent';
 // import OrdersContent from './components/OrdersContent';
 import { useAuth } from '@/hooks/auth-context'
 import { useRouter } from 'next/navigation'

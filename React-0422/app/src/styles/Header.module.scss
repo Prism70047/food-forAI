@@ -29,6 +29,14 @@
       gap: 15px;
       height: 100%;
 
+      .activeNavBtn {
+        border-radius: 9rem;
+        // background: $color-background-error;
+        h3 {
+          color: $color-accent;
+        }
+      }
+
       button {
         h3 {
           color: $color-primary;
@@ -78,7 +86,7 @@
 
 .dropdownMenu {
   position: absolute;
-  top: 50; /* 根據父容器調整距離 */
+  top: 100%; /* 根據父容器調整距離 */
   left: 50%; /* 靠左對齊 */
   transform: translateX(-50%);
   background-color: #fff;
@@ -88,8 +96,10 @@
   padding: 10px 0;
   margin: 0;
   z-index: 100;
+  text-align: center;
 
   li {
+    white-space: nowrap;
     padding: 10px 20px;
 
     a {

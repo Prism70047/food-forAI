@@ -1,7 +1,7 @@
 'use client'
 
 // context套用第1步: 建立context
-import { createContext, useState, useContext } from 'react'
+import { createContext, useState, useContext, useCallback } from 'react'
 import { useEffect } from 'react'
 
 // createContext的傳入參數是 defaultValue，是在套用context失敗或有錯誤發生時會得到的預設值(也有備援值的概念)，可以用有意義的值或是null(通常是針對物件或是除錯用)
@@ -21,69 +21,65 @@ export function CartProvider({ children }) {
   //   決定是否為第一次渲染的狀態(透過布林值)
   const [didMount, setDidMount] = useState(false)
 
-  // 處理遞增數量
-  const onIncrease = (itemId) => {
-    const nextItems = items.map((item) => {
-      // 在成員(物件)中比對出id為itemId的成員
-      if (item.id === itemId) {
-        // 如果比對，拷貝物件+遞增count屬性值(item.count+1)
-        return { ...item, count: item.count + 1 }
-      } else {
-        // 否則返回原物件
-        return item
-      }
-    })
+  // 新增loadCart函式
+  const loadCart = useCallback((newCartItems) => {
+    setItems(newCartItems || [])
+  }, []) // setItems 是穩定的，依賴陣列可以是空的
 
-    //  設定到狀態
-    setItems(nextItems)
-  }
+  // 處理遞增數量
+  const onIncrease = useCallback((itemId) => {
+    setItems(
+      (
+        prevItems // ✨ 使用 setItems 的 functional update 形式，prevItems 是當前最新的 items 狀態
+      ) =>
+        prevItems.map((item) =>
+          // 假設你的 items 裡面的 id 就是用來唯一識別購物車項目的
+          // (例如 productId 或 cartItemId，你需要確保這裡用的 id 跟你的資料結構一致)
+          item.id === itemId ? { ...item, count: (item.count || 0) + 1 } : item
+        )
+    )
+  }, []) // ✨ 依賴陣列可以是空的，因為 setItems 的 functional update 形式不需要依賴外部的 items state，
+  // 而 setItems 本身是由 React 保證其引用穩定性的。
 
   // 處理遞減數量
-  const onDecrease = (itemId) => {
-    const nextItems = items.map((item) => {
-      // 在成員(物件)中比對出id為itemId的成員
-      if (item.id === itemId) {
-        // 如果比對，拷貝物件+遞減count屬性值(item.count-1)
-        return { ...item, count: item.count - 1 }
-      } else {
-        // 否則返回原物件
-        return item
-      }
-    })
-
-    //  設定到狀態
-    setItems(nextItems)
-  }
+  const onDecrease = useCallback((itemId) => {
+    setItems((prevItems) =>
+      prevItems.map(
+        (item) =>
+          item.id === itemId
+            ? { ...item, count: Math.max(0, (item.count || 0) - 1) }
+            : item
+        // Math.max(0, ...) 避免數量變負數，如果數量為0時要移除該商品，你可能需要在這裡或之後加 .filter() 邏輯
+      )
+    )
+  }, []) // 依賴陣列可以是空的
 
   // 處理刪除
-  const onRemove = (itemId) => {
-    const nextItems = items.filter((item) => {
-      //過濾出id不是為itemId的資料
-      return item.id != itemId
-    })
-
-    //  設定到狀態
-    setItems(nextItems)
-  }
+  const onRemove = useCallback((itemId) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== itemId))
+  }, []) // 依賴陣列可以是空的
 
   // 處理新增
-  const onAdd = (product) => {
-    // 判斷要加入的商品是否已經在購物車中
-    const foundIndex = items.findIndex((v) => v.id === product.id)
+  const onAdd = useCallback((product) => {
+    // product 應該是你想要加入購物車的商品物件
+    setItems((currentItems) => {
+      // 假設 product 物件有 id 屬性，且這個 id 跟 items 裡的 item.id 是同個東西
+      const foundIndex = currentItems.findIndex((v) => v.id === product.id)
 
-    if (foundIndex !== -1) {
-      // 如果有找到 ===> 遞增商品數量
-      onIncrease(product.id)
-    } else {
-      // 否則 ===> 新增商品到購物車
-      // 定義要新增的購物車項目, 與商品的物件值會相差一個count屬性(數字類型，代表購買的數量)
-      const newItem = { ...product, count: 1 }
-      // 加到購物車前面
-      const nextItems = [newItem, ...items]
-      // 設定到狀態
-      setItems(nextItems)
-    }
-  }
+      if (foundIndex !== -1) {
+        // 如果商品已存在，增加數量
+        return currentItems.map((item) =>
+          item.id === product.id
+            ? { ...item, count: (item.count || 0) + 1 }
+            : item
+        )
+      } else {
+        // 否則，新增商品到購物車 (假設 product 物件有 price 等屬性)
+        const newItem = { ...product, count: 1 }
+        return [newItem, ...currentItems]
+      }
+    })
+  }, []) // product 是傳入參數，不需列為依賴；setItems 的 functional update 讓依賴陣列可以是空的
 
   // 使用陣列的迭代方法reduce來計算總數量/總價
   // 稱為衍生/派生狀態(derived state)，意即是狀態的一部份，或是由狀態計算得來的變數值
@@ -108,7 +104,7 @@ export function CartProvider({ children }) {
     }
     // 下面這一行為告訴eslint不用檢查下面這一行[items]
     // eslint-disable-next-line
-  }, [items])
+  }, [items, didMount])
   return (
     <CartContext.Provider
       // 要傳出的值屬性比較多時，可以按值or函式分組，與按英文名稱由上到下排序
@@ -120,6 +116,7 @@ export function CartProvider({ children }) {
         onDecrease,
         onIncrease,
         onRemove,
+        loadCart,
         didMount,
       }}
     >
@@ -135,6 +132,6 @@ export function CartProvider({ children }) {
  * useAuth是一個設計專門用來讀取CartContext的值的勾子(hook)。
  * items, totalAmount, totalQty, onAdd, onDecrease, onIncrease, onRemove,
  *
- * @returns {{items: Array, totalAmount:number,  totalQty: number, onAdd: Function, onDecrease: Function, onIncrease: Function, onRemove: Function,}}
+ * @returns {{items: Array, totalAmount:number,  totalQty: number, onAdd: Function, onDecrease: Function, onIncrease: Function, onRemove: Function, loadCart: Function, didMount: boolean}}
  */
 export const useCart = () => useContext(CartContext)

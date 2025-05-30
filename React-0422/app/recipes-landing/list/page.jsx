@@ -10,6 +10,7 @@ import RecipeCard from '@/app/components/RecipeCard'
 import { API_SERVER } from '../../../config/api-path'
 import { IoIosArrowBack } from '../../icons/icons'
 import Bread from '@/app/components/Bread'
+import PageTransition from '@/app/components/PageTransition'
 
 const RECIPES_PER_PAGE = 12
 
@@ -130,60 +131,69 @@ export default function RecipeListPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <Bread
-        items={[
-          { text: '首頁', href: '/' },
-          { text: '食譜搜尋', href: '/recipes-landing' },
-          { text: '食譜列表', href: '/recipes-landing/list' },
-        ]}
-      />
-      <div className={styles.content}>
-        {/* Recipe Cards Section */}
-        <div className={styles.recipeSection}>
-          {isLoading && !favoritesLoaded ? ( // 確保 favorites 已加載
-            <div className={styles.loading}>載入中...</div>
-          ) : (
-            <div className={styles.recipeGrid}>
-              {recipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.id}
-                  id={recipe.id}
-                  image={recipe.image}
-                  title={recipe.title}
-                  description={recipe.description}
-                  initialFavorite={favorites[recipe.id] || false}
-                  onFavoriteToggle={toggleFavorite}
-                />
-              ))}
+    <>
+      <PageTransition>
+        <div className={styles.container}>
+          <div className={styles.content}>
+            <div className={styles.breadContainer}>
+              <Bread
+                items={[
+                  { text: '首頁', href: '/' },
+                  { text: '食譜搜尋', href: '/recipes-landing' },
+                  { text: '食譜列表', href: '' },
+                ]}
+              />
             </div>
-          )}
-        </div>
+            {/* Recipe Cards Section */}
+            <div className={styles.recipeSection}>
+              {isLoading && !favoritesLoaded ? ( // 確保 favorites 已加載
+                <div className={styles.loading}>載入中...</div>
+              ) : (
+                <div className={styles.recipeGrid}>
+                  {recipes.map((recipe) => (
+                    <RecipeCard
+                      key={recipe.id}
+                      id={recipe.id}
+                      image={recipe.image}
+                      title={recipe.title}
+                      description={recipe.description}
+                      initialFavorite={favorites[recipe.id] || false}
+                      onFavoriteToggle={toggleFavorite}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
-        {/* Pagination */}
-        <div className={styles.paginationSection}>
-          <div className={styles.pagination}>
-            <h2
-              onClick={() => handlePageChange(currentPage - 1)}
-              style={{ cursor: currentPage > 1 ? 'pointer' : 'not-allowed' }}
-            >
-              <IoIosArrowBack />
-            </h2>
-            {renderPaginationButtons()}
-            <h2
-              onClick={() => handlePageChange(currentPage + 1)}
-              style={{
-                cursor: currentPage < totalPages ? 'pointer' : 'not-allowed',
-              }}
-            >
-              <IoIosArrowBack />
-            </h2>
+            {/* Pagination */}
+            <div className={styles.paginationSection}>
+              <div className={styles.pagination}>
+                <h2
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  style={{
+                    cursor: currentPage > 1 ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  <IoIosArrowBack />
+                </h2>
+                {renderPaginationButtons()}
+                <h2
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  style={{
+                    cursor:
+                      currentPage < totalPages ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  <IoIosArrowBack />
+                </h2>
+              </div>
+            </div>
           </div>
+          {/* Featured Recipes 你可能會喜歡 */}
+          <FeaturedRecipes />
         </div>
-      </div>
-      {/* Featured Recipes 你可能會喜歡 */}
-      <FeaturedRecipes />
-    </div>
+      </PageTransition>
+    </>
   )
 }
 

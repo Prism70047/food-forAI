@@ -16,12 +16,30 @@
   box-shadow: $card-shadow;
 }
 
+// 信用卡背景
+.creditCardSection {
+padding: 20px 0;
+  text-align: center;
+  background-color: #f1592215; /* 一個淡淡的背景色 */
+  border-radius: 8px;
+  /* margin-top: 20px; */
+}
+
+
+/* creditCardSection <p> */
+.creditCardSection p {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 16px;
+}
+
 /* h2 */
 .formHeaderTitle {
   text-align: center;
   color: #333;
   margin-bottom: 25px;
 }
+
 
 /* 付款方式按鈕 */
 .paymentMethodSelector {
@@ -101,58 +119,24 @@
 /* END 付款方式選擇按鈕 */
 
 /* --- 信用卡表單 spezifische Styles --- */
-.creditCardForm h3,
+.creditCardSection h3,
 .linePaySection h3 {
   /* 給各區塊一個小標題 */
   margin-top: 0;
   margin-bottom: 20px;
   color: #333;
   font-size: 1.3em;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #b5afaf33;
   padding-bottom: 10px;
-}
-
-.formGroup {
-  margin-bottom: 20px;
-}
-
-.formGroup label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #555;
-}
-
-.formGroup input[type='text'],
-.formGroup input[type='password'] {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  box-sizing: border-box;
-  font-size: 16px;
-  transition: border-color 0.3s ease;
-}
-
-.formGroup input[type='text']:focus,
-.formGroup input[type='password']:focus {
-  outline: none;
-  border-color: $color-accent;
-  box-shadow: 0 0 0 0.2rem rgba(255, 123, 0, 0.218);
-}
-
-.formRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
 }
 
 .expiryDate {
   flex: 1;
 }
 
+/* payment按鍵 */
 .submitButton {
-  width: 100%;
+  width: 60%;
   padding: 10px 10px;
   background-color: #e06c14;
   color: white;
@@ -165,13 +149,14 @@
   margin-top: 10px; /* 跟上面元素有點距離 */
 }
 
+/* payment按鍵動到特效 */
 .submitButton:hover {
   background-color: $color-primary;
   transform: translateY(-1px);
 }
 
+/* 按下按鈕時的效果 */
 .submitButton:active {
-  /* 按下按鈕時的效果 */
   transform: translateY(0px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -211,7 +196,7 @@
   z-index: -1;
   width: 500px;
   position: absolute;
-  left: 50px;
+  left: 7%;
   top: 215px;
   /* transform: rotate(250deg); */
 }
@@ -220,7 +205,7 @@
   z-index: -1;
   width: 300px;
   position: absolute;
-  right: 150px;
+  right: 15%;
   top: 200px;
   /* transform: rotate(250deg); */
 }

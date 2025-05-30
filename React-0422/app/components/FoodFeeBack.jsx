@@ -10,31 +10,19 @@ import 'sweetalert2/dist/sweetalert2.min.css'
 const styles = {
   title: {
     color: '#423C3A',
-    fontSize: 48,
-    fontFamily: 'Noto Sans TC',
-    fontWeight: '700',
     wordWrap: 'break-word',
   },
   subtitle: {
     color: '#423C3A',
-    fontSize: 20,
-    fontFamily: 'Noto Sans TC',
-    fontWeight: '700',
     wordWrap: 'break-word',
   },
   placeholder: {
     color: '#C7C7C7',
-    fontSize: 20,
-    fontFamily: 'Inter',
-    fontWeight: '400',
     letterSpacing: 0.6,
     wordWrap: 'break-word',
   },
   buttonText: {
     color: '#FAF8F9',
-    fontSize: 36,
-    fontFamily: 'Noto Sans TC',
-    fontWeight: '700',
     wordWrap: 'break-word',
   },
 }
@@ -49,11 +37,11 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
   const [isLike, setIsLike] = useState(0) // 預設為按讚
   console.log('auth:', auth) // 確認 auth 是否正確獲取
   console.log('recipeId:', recipeId) // 確認 recipeId 是否正確獲取
-  console.log('auth:', auth.id) // 確認 auth 是否正確獲取
+  console.log('auth:', auth.user_id) // 確認 auth 是否正確獲取
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!id) {
+    if (!recipeId) {
       Swal.fire({
         title: '錯誤',
         text: '無法獲取食譜 ID',
@@ -72,7 +60,7 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
           },
           body: JSON.stringify({
             recipeId: recipeId,
-            userId: auth.id,
+            userId: auth.user_id,
             title: title.trim(),
             context: context.trim(),
             is_like: isLike, // 確保 isLike 會是 0 或 1
@@ -157,11 +145,11 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'flex-start',
-              gap: 15,
+              gap: 10,
               display: 'flex',
             }}
           >
-            <div style={styles.subtitle}>標題</div>
+            <h2 style={styles.subtitle}>標題</h2>
             <input
               type="text"
               value={title}
@@ -191,11 +179,11 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'flex-start',
-              gap: 15,
+              gap: 10,
               display: 'flex',
             }}
           >
-            <div style={styles.subtitle}>評論</div>
+            <h2 style={styles.subtitle}>評論</h2>
             <textarea
               value={context}
               onChange={(e) => setComment(e.target.value)}
@@ -210,9 +198,8 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
                 background: '#FAF8F9',
                 borderRadius: 15,
                 outline: '2px #ECECEC solid',
-                outlineOffset: '-2px',
+                outlineOffset: '-2px ',
                 fontSize: 16,
-                fontFamily: 'Inter',
                 resize: 'none',
               }}
             />
@@ -240,12 +227,13 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
         <button
           type="submit"
           style={{
-            paddingLeft: 60,
-            paddingRight: 60,
-            paddingTop: 25,
-            paddingBottom: 25,
+            paddingLeft: 20,
+            paddingRight: 20,
+            paddingTop: 10,
+            paddingBottom: 10,
+            marginBottom: 20,
             background: '#DF6C2D',
-            boxShadow: '0px 0px 0px 15px rgba(0, 0, 0, 0.05)',
+            boxShadow: '0px 0px 0px 10px rgba(0, 0, 0, 0.05)',
             borderRadius: 100,
             justifyContent: 'center',
             alignItems: 'center',
@@ -254,7 +242,7 @@ export default function FoodFeeBack({ onSubmitSuccess, recipeId, auth }) {
             cursor: 'pointer',
           }}
         >
-          <div style={styles.buttonText}>送出</div>
+          <h2 style={styles.buttonText}>送出</h2>
         </button>
       </form>
     </div>

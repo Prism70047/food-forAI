@@ -84,6 +84,14 @@
   justify-content: space-between;
   width: 100%;
   max-width: 1280px;
+  button {
+    &:hover {
+      transform: scale(1.2);
+    }
+    &:active {
+      transform: scale(0.98);
+    }
+  }
 }
 
 .arrowIcon {
@@ -100,6 +108,15 @@
   gap: 15px;
   justify-content: start;
   flex-wrap: wrap;
+  transition: all 0.3s;
+  button {
+    &:hover {
+      transform: scale(1.1);
+    }
+    &:active {
+      transform: scale(0.98);
+    }
+  }
 }
 
 /* categoryIcon 漸層Start */
@@ -195,7 +212,8 @@
 .categoryTitle {
   font-size: 32px;
   position: relative;
-  text-shadow: $title-shadow;
+  // text-shadow: $title-shadow;
+  color: $color-primary;
   overflow: hidden;
 }
 
@@ -313,6 +331,13 @@
           color: $color-primary;
           font-size: $font-size-h3;
           align-self: stretch;
+        }
+        transition: all 0.3s;
+        &:hover {
+          transform: scale(1.02); // 放大卡片
+        }
+        &:active {
+          transform: scale(0.98);
         }
       }
     }

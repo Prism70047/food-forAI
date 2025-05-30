@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
-import styles from '../../styles/RestaurantDetail.module.css'
+import styles from '../../src/styles/page-styles/RestaurantDetail.module.scss'
 import useSWR from 'swr'
 import { useEffect } from 'react'
 import { useState } from 'react'
@@ -86,197 +86,167 @@ export default function RestaurantDetailPage() {
       <div className={styles.container}>
         {/* 測試一下有沒有拿到JSON資料。如果有拿掉的話可以先註解掉 */}
         {/* <div>{JSON.stringify(restaurant)}</div> */}
-        <Bread
-          style={{ BackgroundColor: 'red' }}
-          items={[
-            { text: '首頁', href: '/' },
-            { text: '餐廳列表', href: '/restaurants' },
-            { text: '餐廳介紹' },
-          ]}
-        />
+        <div className={styles.breadContainer}>
+          <Bread
+            items={[
+              { text: '首頁', href: '/' },
+              { text: '餐廳列表', href: '/restaurants' },
+              { text: '餐廳介紹', href: '' },
+            ]}
+          />
+        </div>
         <div className={styles.content}>
           <div className={styles.breadcrumb}>
-            <div className={styles.mainContent}>
-              <h1 className={styles.restaurantTitle}>
-                隱身巷弄的美味秘境：{restaurant.name}
-              </h1>
-
-              <div className={styles.actionButtons}>
+            {/* 標題 */}
+            <div className={styles.actionButtons}>
+              <h1>隱身巷弄的美味秘境：{restaurant.name}</h1>
+              <div className={styles.actionButtonIcon}>
                 <div className={styles.actionButton}>
                   <img
                     src="/images/like/love1.png"
                     className={styles.actionIcon}
                     alt="收藏"
                   />
-                  <div>收藏餐廳</div>
+                  <h3>收藏餐廳</h3>
                 </div>
                 <div className={styles.actionButton}>
-                  {/* <img
-                  src="/images/restaurant/share-icon.png"
-                  className={styles.actionIcon}
-                  alt="分享"
-                /> */}
                   <IoMdShare />
-                  <div>分享</div>
+                  <h3>分享</h3>
                 </div>
               </div>
+            </div>
+            <div className={styles.authorInfo}>
+              <div className={styles.recommendBadge}>
+                <IoStar />
+                <h3 className={styles.badgeText}>特別推薦</h3>
+              </div>
 
-              <div className={styles.authorInfo}>
-                <div className={styles.recommendBadge}>
-                  {/* <img
-                  src="/images/restaurant/recommend-icon.png"
-                  className={styles.badgeIcon}
-                  alt="特別推薦"
-                /> */}
-                  <IoStar />
-                  <div className={styles.badgeText}>特別推薦</div>
-                </div>
+              <div className={styles.authorLabel}>
                 <img
                   src="/images/user/default.jpg"
                   className={styles.authorAvatar}
                   alt="作者頭像"
                 />
-                <div className={styles.authorLabel}>
+                <h3 className={styles.publishDate}>
                   {restaurant.author}美食編輯
-                </div>
-                <div className={styles.publishDate}>
+                </h3>
+                <h3 className={styles.publishDate}>
                   {restaurant.publishDate}2024.01.15
-                </div>
+                </h3>
+              </div>
+            </div>
+
+            {/* 內文 */}
+            <div className={styles.heroImage}>
+              <img
+                src={restaurant.image}
+                className={styles.heroImg}
+                alt={restaurant.title}
+              />
+            </div>
+
+            <div className={styles.restaurantDescription}>
+              <p> {restaurant.description}</p>
+              <h2>特色料理品味之旅</h2>
+
+              <div className={styles.quoteBox}>
+                <p className={styles.quoteText}>
+                  「每一道料理，都是一場味蕾的藝術饗宴。在這裡，我們不僅提供美食，更創造難忘的餐飲體驗。」
+                </p>
+                <p className={styles.quoteAuthor}>— Marco Rossi 主廚</p>
               </div>
 
-              <div className={styles.heroImage}>
-                <img
-                  src={restaurant.image}
-                  className={styles.heroImg}
-                  alt={restaurant.title}
-                />
+              {restaurant.dishes.map((dish, index) => (
+                <div className={styles.dishContainer} key={index}>
+                  <img
+                    src={dish.image_url}
+                    className={styles.dishImage}
+                    alt={dish.title}
+                  />
+                  <h2 className={styles.dishTitle}>{dish.title}</h2>
+                  <p className={styles.dishDescription}>{dish.description}</p>
+                </div>
+              ))}
+
+              <div className={styles.recommendationBox}>
+                <h3 className={styles.recommendationTitle}>主廚推薦搭配</h3>
+                <p className={styles.recommendationText}>
+                  建議可以選擇餐廳特別引進的托斯卡尼基安地紅酒，其果香與單寧的平衡，能夠完美襯托出主菜的風味。餐後甜點則可以搭配西西里島的甜酒，其中蘊含的堅果與蜂蜜香氣，為美食之旅帶來圓滿的結束。
+                </p>
+                cla
               </div>
+            </div>
 
-              <div className={styles.restaurantDescription}>
-                <div className={styles.descriptionText}>
-                  {restaurant.description}
-                </div>
-
-                <h2 className={styles.sectionTitle}>特色料理品味之旅</h2>
-
-                <div className={styles.quoteBox}>
-                  <div className={styles.quoteText}>
-                    「每一道料理，都是一場味蕾的藝術饗宴。在這裡，我們不僅提供美食，更創造難忘的餐飲體驗。」
-                  </div>
-                  <div className={styles.quoteAuthor}>— Marco Rossi 主廚</div>
-                </div>
-
-                {restaurant.dishes.map((dish, index) => (
-                  <div className={styles.dishContainer} key={index}>
-                    <img
-                      src={dish.image_url}
-                      className={styles.dishImage}
-                      alt={dish.title}
-                    />
-                    <h3 className={styles.dishTitle}>{dish.title}</h3>
-                    <div className={styles.dishDescription}>
-                      {dish.description}
-                    </div>
-                  </div>
-                ))}
-
-                <div className={styles.recommendationBox}>
-                  <div className={styles.recommendationTitle}>主廚推薦搭配</div>
-                  <div className={styles.recommendationText}>
-                    建議可以選擇餐廳特別引進的托斯卡尼基安地紅酒，其果香與單寧的平衡，能夠完美襯托出主菜的風味。餐後甜點則可以搭配西西里島的甜酒，其中蘊含的堅果與蜂蜜香氣，為美食之旅帶來圓滿的結束。
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.infoSection}>
-                <div className={styles.infoCard}>
-                  <div className={styles.infoCardTitle}>餐廳資訊</div>
-                  <div className={styles.infoCardContent}>
-                    <div className={styles.infoItem}>
-                      {/* <img
-                      src="/images/restaurant/location-icon.png"
-                      className={styles.infoIcon}
-                      alt="地址"
-                    /> */}
-
-                      <FaMapMarkerAlt />
-                      <div className={styles.infoTextGroup}>
-                        <div className={styles.infoText}>
-                          {restaurant.address}
+            <div className={styles.infoSection}>
+              <div className={styles.infoCard}>
+                <div>
+                  <h2>餐廳資訊</h2>
+                  <div>
+                    <div className={styles.infoCardContent}>
+                      <div className={styles.infoItem}>
+                        <FaMapMarkerAlt />
+                        <div className={styles.infoTextGroup}>
+                          <p>{restaurant.address}</p>
+                          <h3
+                            className={styles.infoLink}
+                            onClick={handleShow}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            在地圖開啟
+                          </h3>
+                          {/* 新增 Modal 組件 */}
+                          <Modal show={showMap} onHide={handleClose} size="lg">
+                            <Modal.Header closeButton>
+                              <Modal.Title>
+                                {restaurant.name} - 位置資訊
+                              </Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                              {restaurant.latitude && restaurant.longitude ? (
+                                <div style={{ height: '400px', width: '100%' }}>
+                                  <MapComponent
+                                    address={restaurant.address}
+                                    latitude={parseFloat(restaurant.latitude)}
+                                    longitude={parseFloat(restaurant.longitude)}
+                                    name={restaurant.name}
+                                  />
+                                </div>
+                              ) : (
+                                <div className={styles.noMapData}>
+                                  地圖資料載入中...
+                                </div>
+                              )}
+                            </Modal.Body>
+                            <Modal.Footer>
+                              <Button variant="secondary" onClick={handleClose}>
+                                關閉
+                              </Button>
+                              <Button
+                                variant="primary"
+                                as="a"
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                在 Google Maps 開啟
+                              </Button>
+                            </Modal.Footer>
+                          </Modal>
                         </div>
-                        <div
-                          className={styles.infoLink}
-                          onClick={handleShow}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          在地圖開啟
-                        </div>
-                        {/* 新增 Modal 組件 */}
-                        <Modal show={showMap} onHide={handleClose} size="lg">
-                          <Modal.Header closeButton>
-                            <Modal.Title>
-                              {restaurant.name} - 位置資訊
-                            </Modal.Title>
-                          </Modal.Header>
-                          <Modal.Body>
-                            {restaurant.latitude && restaurant.longitude ? (
-                              <div style={{ height: '400px', width: '100%' }}>
-                                <MapComponent
-                                  address={restaurant.address}
-                                  latitude={parseFloat(restaurant.latitude)}
-                                  longitude={parseFloat(restaurant.longitude)}
-                                  name={restaurant.name}
-                                />
-                              </div>
-                            ) : (
-                              <div className={styles.noMapData}>
-                                地圖資料載入中...
-                              </div>
-                            )}
-                          </Modal.Body>
-                          <Modal.Footer>
-                            <Button variant="secondary" onClick={handleClose}>
-                              關閉
-                            </Button>
-                            <Button
-                              variant="primary"
-                              as="a"
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.address)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              在 Google Maps 開啟
-                            </Button>
-                          </Modal.Footer>
-                        </Modal>
                       </div>
                     </div>
-                  </div>
-
-                  <div className={styles.infoItemSimple}>
-                    {/* <img
-                      src="/images/restaurant/phone-icon.png"
-                      className={styles.infoIcon}
-                      alt="電話"
-                    /> */}
-                    <FaPhoneAlt />
-
-                    <div>{restaurant.phone}</div>
-                  </div>
-
-                  <div className={styles.infoItemHours}>
-                    {/* <img
-                      src="/images/restaurant/time-icon.png"
-                      className={styles.infoIconSmall}
-                      alt="營業時間"
-                    /> */}
-                    <FaRegClock />
-
-                    <div className={styles.infoTextFull}>
-                      {restaurant.hours}
+                    <div className={styles.infoItemSimple}>
+                      <FaPhoneAlt />
+                      <p>{restaurant.phone}</p>
+                    </div>
+                    <div className={styles.infoItemSimple}>
+                      <FaRegClock />
+                      <p>{restaurant.hours}</p>
                     </div>
                   </div>
-                  <div className={styles.infoSubtitle}>消費資訊</div>
+                </div>
+                <div>
+                  <h2>消費資訊</h2>
                   <div className={styles.infoList}>
                     {/* 假設 consumption 現在在 restaurant 的第一層 */}
                     <div className={styles.infoListItem}>
@@ -304,9 +274,11 @@ export default function RestaurantDetailPage() {
                   ))} */}
                   </div>
                 </div>
-                {/* 資料庫忘了寫相關餐廳的資訊。所以下面這個先關掉(註解掉) */}
-                <div className={styles.infoCard}>
-                  <div className={styles.infoCardTitle}>相關餐廳</div>
+              </div>
+
+              <div className={styles.infoCard}>
+                <div>
+                  <h2>相關餐廳</h2>
                   <div className={styles.relatedRestaurants}>
                     {restaurant.related_restaurants.map((related, index) => (
                       <div

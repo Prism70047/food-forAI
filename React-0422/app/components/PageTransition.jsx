@@ -8,7 +8,7 @@ export default function PageTransition({ children }) {
   const pathname = usePathname()
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait" initial={true}>
       <motion.main
         key={pathname}
         initial={{ opacity: 0, y: 20 }}

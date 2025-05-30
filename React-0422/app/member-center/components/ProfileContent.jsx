@@ -41,7 +41,7 @@ const ProfileContent = () => {
   }, [authInit, auth, router])
 
   // 抓取資料的函數 (fetcher)
-  const fetcher = async (url) => {
+  const fetcher = async url => {
     try {
       // 除錯用
       console.log('Fetching URL:', url)
@@ -56,12 +56,8 @@ const ProfileContent = () => {
 
       // 除錯用：檢查回應狀態與內容類型
       if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ message: '無法解析錯誤回應' }))
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        )
+        const errorData = await response.json().catch(() => ({ message: '無法解析錯誤回應' }))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
@@ -81,7 +77,7 @@ const ProfileContent = () => {
   // 定義 API URL，確保 auth 初始化且有 token 才設定 URL
   const userApiUrl =
     authInit && auth?.token
-      ? `${process.env.NEXT_PUBLIC_API_URL}/users/api/${auth.user_id}`
+      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/api/${auth.user_id}`
       : null // 如果不符合條件，SWR 將不會發送請求
 
   // 使用 SWR 抓取資料，並獲取 data, error 和 isLoading 狀態
@@ -110,18 +106,17 @@ const ProfileContent = () => {
       setFormData(userData)
       setInitialData(userData)
       // 決定初始頭貼路徑 (優先用 data，其次用 auth)
-      const initialAvatar =
-        data.rows.profile_picture_url || auth.profile_picture_url
+      const initialAvatar = data.rows.profile_picture_url || auth.profile_picture_url
       setPreviewImage(
         initialAvatar
-          ? `${process.env.NEXT_PUBLIC_API_URL}${initialAvatar}`
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${initialAvatar}`
           : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
       )
     } else if (auth.user_id) {
       const initialAvatar = auth.profile_picture_url
       setPreviewImage(
         initialAvatar
-          ? `${process.env.NEXT_PUBLIC_API_URL}${initialAvatar}`
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${initialAvatar}`
           : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
       )
     } else {
@@ -165,7 +160,7 @@ const ProfileContent = () => {
       type: 'tel',
       editable: true,
       placeholder: '請輸入手機號碼',
-      validation: (value) => {
+      validation: value => {
         if (!value) return '手機號碼為必填'
         if (!/^09\d{8}$/.test(value)) return '手機號碼格式不正確'
         return ''
@@ -177,7 +172,7 @@ const ProfileContent = () => {
       type: 'text',
       editable: true,
       placeholder: '請輸入姓名',
-      validation: (value) => {
+      validation: value => {
         if (!value) return '姓名為必填'
         if (value.length > 50) return '姓名不可超過50個字'
         return ''
@@ -189,7 +184,7 @@ const ProfileContent = () => {
       type: 'text',
       editable: true,
       placeholder: '請輸入使用者名稱',
-      validation: (value) => {
+      validation: value => {
         if (!value) return '使用者名稱為必填'
         if (value.length > 10) return '使用者名稱不可超過10個字'
         return ''
@@ -200,16 +195,13 @@ const ProfileContent = () => {
       label: '生日',
       type: 'date',
       editable: true,
-      validation: (value) => {
+      validation: value => {
         if (!value) return '生日為必填'
         const birthDate = new Date(value)
         const today = new Date()
         let age = today.getFullYear() - birthDate.getFullYear()
         const monthDiff = today.getMonth() - birthDate.getMonth()
-        if (
-          monthDiff < 0 ||
-          (monthDiff === 0 && today.getDate() < birthDate.getDate())
-        ) {
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
           age--
         }
         if (age < 18) return '需年滿18歲'
@@ -238,14 +230,14 @@ const ProfileContent = () => {
   ]
 
   // 處理表單輸入變更
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value } = e.target
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }))
     if (formErrors[name]) {
-      setFormErrors((prev) => ({
+      setFormErrors(prev => ({
         ...prev,
         [name]: '',
       }))
@@ -257,7 +249,7 @@ const ProfileContent = () => {
   const validateForm = () => {
     const newErrors = {}
     let isValid = true
-    profileFieldsConfig.forEach((field) => {
+    profileFieldsConfig.forEach(field => {
       if (field.validation) {
         const errorMessage = field.validation(formData[field.name])
         if (errorMessage) {
@@ -285,7 +277,7 @@ const ProfileContent = () => {
 
     // 編輯後，準備要送到後端的資料 (只送可編輯的欄位)
     const dataToUpdate = {}
-    profileFieldsConfig.forEach((field) => {
+    profileFieldsConfig.forEach(field => {
       if (field.editable && formData[field.name] !== initialData[field.name]) {
         dataToUpdate[field.name] = formData[field.name] // 檢查是否有變動
       }
@@ -322,28 +314,25 @@ const ProfileContent = () => {
         }
         setInitialData(updatedUserData)
         setFormData(updatedUserData)
-        setPreviewImage(
-          result.data.profile_picture_url
-            ? `${process.env.NEXT_PUBLIC_API_URL}${result.data.profile_picture_url}`
-            : previewImage
-        )
         setIsEditing(false)
         mutate(userApiUrl) // 重新觸發 SWR
 
-        // 同時更新 auth Context 和 localStorage
-        setAuth((prevAuth) => ({
+        // 更新 auth context，加入 username 的更新
+        setAuth(prevAuth => ({
           ...prevAuth,
           profile_picture_url: result.data.profile_picture_url,
+          username: dataToUpdate.username || prevAuth.username,
         }))
-        const storedAuthData = JSON.parse(
-          localStorage.getItem('shinder-auth') || '{}'
-        )
+
+        // 更新 localStorage
+        const storedAuthData = JSON.parse(localStorage.getItem('shinder-auth') || '{}')
         if (storedAuthData.token) {
           localStorage.setItem(
             'shinder-auth',
             JSON.stringify({
               ...storedAuthData,
               profile_picture_url: result.data.profile_picture_url,
+              username: dataToUpdate.username || storedAuthData.username,
             })
           )
         }
@@ -374,7 +363,7 @@ const ProfileContent = () => {
   // --- 編輯事件處理函式結束 ---
 
   // --- 頭貼上傳相關函式 ---
-  const handleFileChange = (event) => {
+  const handleFileChange = event => {
     const file = event.target.files[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -383,7 +372,7 @@ const ProfileContent = () => {
         setSelectedFile(null)
         setPreviewImage(
           initialData.avatar
-            ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+            ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${initialData.avatar}`
             : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f'
         )
         return
@@ -393,7 +382,7 @@ const ProfileContent = () => {
         setSelectedFile(null)
         setPreviewImage(
           initialData.avatar
-            ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+            ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${initialData.avatar}`
             : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f'
         )
         return
@@ -419,7 +408,7 @@ const ProfileContent = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/api/upload-avatar/${auth.user_id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/api/upload-avatar/${auth.user_id}`,
         {
           method: 'POST',
           headers: {
@@ -435,25 +424,23 @@ const ProfileContent = () => {
       if (response.ok && result.success) {
         toast.success(result.message || '頭貼更新成功！')
         const newAvatarServerPath = result.filePath
-        const newAvatarFullPath = `${process.env.NEXT_PUBLIC_API_URL}${newAvatarServerPath}`
+        const newAvatarFullPath = `${process.env.NEXT_PUBLIC_BACKEND_URL}${newAvatarServerPath}`
 
         // 1. 更新預覽圖
         setPreviewImage(newAvatarFullPath)
 
         // 2. 更新表單和初始資料狀態
-        setFormData((prev) => ({ ...prev, avatar: newAvatarServerPath }))
-        setInitialData((prev) => ({ ...prev, avatar: newAvatarServerPath }))
+        setFormData(prev => ({ ...prev, avatar: newAvatarServerPath }))
+        setInitialData(prev => ({ ...prev, avatar: newAvatarServerPath }))
 
         // 3. 更新 Auth Context
-        setAuth((prevAuth) => ({
+        setAuth(prevAuth => ({
           ...prevAuth,
           profile_picture_url: newAvatarServerPath,
         }))
 
         // 4. 更新 localStorage 中的 auth 資料 (重要！這樣刷新頁面後才會是新的頭貼)
-        const storedAuthData = JSON.parse(
-          localStorage.getItem('shinder-auth') || '{}'
-        )
+        const storedAuthData = JSON.parse(localStorage.getItem('shinder-auth') || '{}')
         if (storedAuthData.token) {
           localStorage.setItem(
             'shinder-auth',
@@ -473,7 +460,7 @@ const ProfileContent = () => {
         //  6. 更新 SWR 快取，但不觸發重新驗證
         mutate(
           userApiUrl,
-          (currentData) => {
+          currentData => {
             // 如果沒有當前資料，就回傳 null 或 undefined
             if (!currentData) return currentData
             // 回傳一個新的資料物件，只更新 profile_picture_url
@@ -492,7 +479,7 @@ const ProfileContent = () => {
         // 上傳失敗時，預覽圖應該回復到之前的頭貼
         setPreviewImage(
           initialData.avatar
-            ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+            ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${initialData.avatar}`
             : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
         )
       }
@@ -501,7 +488,7 @@ const ProfileContent = () => {
       toast.error('頭貼上傳時發生錯誤，請檢查網路連線。')
       setPreviewImage(
         initialData.avatar
-          ? `${process.env.NEXT_PUBLIC_API_URL}${initialData.avatar}`
+          ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${initialData.avatar}`
           : 'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // TODO:換成預設圖示
       )
     } finally {
@@ -512,12 +499,8 @@ const ProfileContent = () => {
 
   // 錯誤狀態處理
   if (!authInit) return <div className={styles.loading}>登入狀態確認中...</div>
-  if (swrError)
-    return (
-      <div className={styles.error}>會員資料讀取失敗：{swrError.message}</div>
-    )
-  if (swrIsLoading && !data)
-    return <div className={styles.loading}>會員資料讀取中...</div>
+  if (swrError) return <div className={styles.error}>會員資料讀取失敗：{swrError.message}</div>
+  if (swrIsLoading && !data) return <div className={styles.loading}>會員資料讀取中...</div>
   if (!userApiUrl && authInit) {
     // 如果 authInit 完成但 userApiUrl 仍為 null (代表未登入)
     return <div className={styles.error}>請先登入以查看會員資料</div>
@@ -530,10 +513,10 @@ const ProfileContent = () => {
   const user = initialData
 
   // 取得性別顯示文字
-  const getGenderLabel = (genderValue) => {
+  const getGenderLabel = genderValue => {
     const genderOption = profileFieldsConfig
-      .find((f) => f.name === 'gender')
-      ?.options.find((opt) => opt.value === genderValue)
+      .find(f => f.name === 'gender')
+      ?.options.find(opt => opt.value === genderValue)
     return genderOption ? genderOption.label : '不提供'
   }
 
@@ -546,10 +529,10 @@ const ProfileContent = () => {
             src={
               previewImage || // 1. 優先顯示預覽圖
               (formData.avatar
-                ? `${process.env.NEXT_PUBLIC_API_URL}${formData.avatar}` // 2. 使用 formData 的路徑 (修正後)
+                ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${formData.avatar}` // 2. 使用 formData 的路徑 (修正後)
                 : null) ||
               (auth.profile_picture_url
-                ? `${process.env.NEXT_PUBLIC_API_URL}${auth.profile_picture_url}` // 3. 使用 auth 的路徑 (修正後)
+                ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${auth.profile_picture_url}` // 3. 使用 auth 的路徑 (修正後)
                 : null) ||
               'https://cdn.builder.io/api/v1/image/assets/TEMP/f52afbad8d5e8417cf84bbdcbf5840a0d135146c?placeholderIfAbsent=true&apiKey=137a18afd6bf49c9985266999785670f' // 4. 預設圖 (請換成你自己的預設圖 URL)
             }
@@ -582,11 +565,7 @@ const ProfileContent = () => {
             <button
               className={styles.editButton}
               // 根據 selectedFile 決定 onClick 的行為
-              onClick={
-                selectedFile
-                  ? handleAvatarUpload
-                  : () => fileInputRef.current?.click()
-              }
+              onClick={selectedFile ? handleAvatarUpload : () => fileInputRef.current?.click()}
               disabled={uploading} // 「上傳中...」時禁用按鈕
             >
               {/* 根據 uploading 和 selectedFile 決定按鈕文字 */}
@@ -594,10 +573,7 @@ const ProfileContent = () => {
             </button>
             {/* 「編輯會員資料」按鈕 */}
             {!isEditing && (
-              <button
-                className={styles.editButton}
-                onClick={() => setIsEditing(true)}
-              >
+              <button className={styles.editButton} onClick={() => setIsEditing(true)}>
                 編輯會員資料
               </button>
             )}
@@ -622,7 +598,7 @@ const ProfileContent = () => {
                         formErrors[field.name] ? styles.inputError : ''
                       }`}
                     >
-                      {field.options.map((option) => (
+                      {field.options.map(option => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
@@ -641,9 +617,7 @@ const ProfileContent = () => {
                     />
                   )}
                   {formErrors[field.name] && (
-                    <div className={styles.errorMessageInline}>
-                      {formErrors[field.name]}
-                    </div>
+                    <div className={styles.errorMessageInline}>{formErrors[field.name]}</div>
                   )}
                 </>
               ) : (

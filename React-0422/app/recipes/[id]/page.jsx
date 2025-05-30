@@ -11,18 +11,21 @@ import Swal from 'sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
 import * as ReactDOM from 'react-dom/client'
 import { useSearchParams } from 'next/navigation'
-import { BsBookmarkStarFill, BsBookmarkPlus } from '../../icons/icons'
 import Bread from '@/app/components/Bread'
 import FavoriteButton from '@/app/components/FavoriteButton'
 import { API_SERVER } from '@/config/api-path'
+import PageTransition from '@/app/components/PageTransition'
 
 import styles from '../../src/styles/page-styles/RecipeDetail.module.scss'
 import {
+  BsBookmarkStarFill,
+  BsBookmarkPlus,
   TbBowlSpoon,
   PiJarLabelBold,
   FaCartShopping,
   FaCartPlus,
   BiLike,
+  BiSolidLike,
   IoIosAddCircle,
   IoIosArrowForward,
   TbHandFinger,
@@ -37,6 +40,7 @@ import useSWR from 'swr'
 import { useRouter } from 'next/navigation'
 import FoodFeeBack from '../../components/FoodFeeBack'
 import { LazyLoadImage } from 'react-lazy-load-image-component'
+import '../../src/styles/main.scss'
 
 export default function RecipeDetailPage() {
   const [currentPage, setCurrentPage] = useState(0) // 當前頁數
@@ -142,11 +146,11 @@ export default function RecipeDetailPage() {
 
     // 使用 Sweetalert2 顯示表單
     Swal.fire({
-      title: '撰寫食譜評論',
+      title: '撰寫評論',
       html: '<div id="feedback-form-container"></div>',
       showCloseButton: true,
       showConfirmButton: false,
-      width: '800px',
+      // width: '800px',
       // 禁用背景滾動條補償
       scrollbarPadding: false,
       // 允許背景點擊關閉
@@ -196,7 +200,7 @@ export default function RecipeDetailPage() {
 
   // 取得收藏狀態
   useEffect(() => {
-    // console.log('Authorization Token:', auth.token) // 檢查 token 是否正確
+    console.log('Authorization Token:', auth.token) // 檢查 token 是否正確
 
     const fetchFavorites = async () => {
       try {
@@ -231,22 +235,22 @@ export default function RecipeDetailPage() {
 
   // 與讚有關的useEffect
   useEffect(() => {
-    const fetchLikes = async () => {
-      if (!auth?.token) return
+    if (!auth?.token || !recipe) return
 
+    const fetchLikes = async () => {
       try {
-        // 獲取使用者的按讚狀態
         const response = await fetch(`${API_SERVER}/recipes/api/likes/${id}`, {
           headers: {
             Authorization: `Bearer ${auth.token}`,
           },
         })
         const data = await response.json()
+        console.log('按讚資料:', data) // 檢查回傳的資料
 
-        // 設置按讚狀態和數量
         if (data.success) {
-          setIsLiked(data.isLiked)
-          setLikeCount(data.likeCount)
+          // 根據後端回傳的資料設置狀態
+          setIsLiked(data.userLiked) // 使用 userLiked 而不是 isLiked
+          setLikeCount(recipe.like_count || 0)
         }
         setLikesLoaded(true)
       } catch (error) {
@@ -254,10 +258,8 @@ export default function RecipeDetailPage() {
       }
     }
 
-    if (auth?.token) {
-      fetchLikes()
-    }
-  }, [auth, id])
+    fetchLikes()
+  }, [auth, id, recipe])
 
   // 初始化按讚數
   useEffect(() => {
@@ -268,6 +270,7 @@ export default function RecipeDetailPage() {
 
   // 處理收藏切換
   const toggleFavorite = (recipeId) => {
+    setSuccessModal(false) // 添加這行
     const newFavoriteStatus = !favorites[recipeId]
 
     setFavorites((prev) => ({
@@ -287,7 +290,7 @@ export default function RecipeDetailPage() {
           Authorization: `Bearer ${auth.token}`,
         },
         body: JSON.stringify({
-          userId: auth.id,
+          userId: auth.user_id,
           recipeId,
           isFavorite: newFavoriteStatus,
         }),
@@ -304,60 +307,61 @@ export default function RecipeDetailPage() {
     }
   }
   // 處理按讚的函數
-  // const toggleLike = async (recipeId) => {
-  //   if (!auth || !auth.token) {
-  //     setShowLoginModal(true)
-  //     return
-  //   }
-
-  //   try {
-  //     const response = await fetch(`${API_SERVER}/recipes/api/likes/${id}`, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${auth.token}`,
-  //       },
-  //       body: JSON.stringify({
-  //         userId: auth.id,
-  //         recipeId,
-  //       }),
-  //     })
-
-  //     if (!response.ok) {
-  //       throw new Error('按讚失敗')
+  //   const toggleLike = async (recipeId) => {
+  //     if (!auth || !auth.token) {
+  //       setShowLoginModal(true)
+  //       return
   //     }
 
-  //     // 解析後端回傳的資料
-  //     const result = await response.json()
+  //     try {
+  //       const response = await fetch(`${API_SERVER}/recipes/api/likes/${id}`, {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization: `Bearer ${auth.token}`,
+  //         },
+  //         body: JSON.stringify({
+  //           userId: auth.id,
+  //           recipeId,
+  //         }),
+  //       })
 
-  //     if (result.success) {
-  //       // 使用後端回傳的讚數更新狀態
-  //       setLikeCount(result.likeCount)
-  //       setLikes((prev) => ({
-  //         ...prev,
-  //         [recipeId]: !prev[recipeId],
-  //       }))
-  //       setIsLiked(!isLiked)
-  //     } else {
-  //       throw new Error(result.message)
-  //     }
-  //   } catch (error) {
-  //     console.error('更新按讚狀態失敗:', error)
-  //     // 可以加入錯誤提示
-  //     // setCartModalMessage(error.message)
-  //     // setShowCartModal(true)
-  //   }
-  // }
+  //       if (!response.ok) {
+  //         throw new Error('按讚失敗')
+  //       }
+
+  //   解析後端回傳的資料
+  //       const result = await response.json()
+
+  //       if (result.success) {
+  //  使用後端回傳的讚數更新狀態
+  //         setLikeCount(result.likeCount)
+  //         setLikes((prev) => ({
+  //           ...prev,
+  //           [recipeId]: !prev[recipeId],
+  //         }))
+  //         setIsLiked(!isLiked)
+  //       } else {
+  //         throw new Error(result.message)
+  //       }
+  //     } catch (error) {
+  //       console.error('更新按讚狀態失敗:', error)
+  //        可以加入錯誤提示
+  //        setCartModalMessage(error.message)
+  //        setShowCartModal(true)
+  //      }
+  //    }
 
   // 按讚
   const toggleLike = async (id) => {
+    setSuccessModal(false) // 添加這行。確保這個跳出視窗正確關閉
     if (!auth || !auth.token) {
       setShowLoginModal(true)
       return
     }
 
     try {
-      const response = await fetch(`${API_SERVER}/recipes/api/likes/id`, {
+      const response = await fetch(`${API_SERVER}/recipes/api/likes/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -371,6 +375,7 @@ export default function RecipeDetailPage() {
 
       if (data.success) {
         // 更新讚數和按讚狀態
+        console.log('更新讚數和按讚狀態:', data)
         setLikeCount(data.likeCount)
         setIsLiked(!isLiked)
       }
@@ -452,32 +457,30 @@ export default function RecipeDetailPage() {
 
     // 新版的，產品ID一個一個給後端
     try {
-      // 為每個產品發送個別的請求
-      const promises = allProductIds.map((productId) =>
-        fetch('http://localhost:3001/cart/api/items', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${auth.token}`,
-          },
-          body: JSON.stringify({
-            productId: productId,
-            quantityToAdd: 1,
-          }),
-        })
-      )
+    const promises = allProductIds.map((productId) =>
+      fetch('http://localhost:3001/cart/api/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({
+          productId: productId,
+          quantityToAdd: 1,
+        }),
+      })
+    )
 
-      // 等待所有請求完成
-      const responses = await Promise.all(promises)
+    const responses = await Promise.all(promises)
+    const results = await Promise.all(responses.map((r) => r.json()))
 
-      // 檢查所有請求是否都成功
-      const results = await Promise.all(responses.map((r) => r.json()))
-
-      // 如果所有請求都成功
-      if (results.every((r) => r.success)) {
-        setCartModalMessage('所有商品已成功加入購物車！')
-        setSuccessModal(true)
-      } else {
+    if (results.every((r) => r.success)) {
+      setCartModalMessage('所有商品已成功加入購物車！')
+      setSuccessModal(true)
+      // 重置所有選擇狀態
+      setSelectedItems({})
+      setSelectedSeasonings({})
+    } else {
         const failedItems = results.filter((r) => !r.success)
         setCartModalMessage(
           `部分商品加入失敗：${failedItems.map((r) => r.message).join('\n')}`
@@ -520,380 +523,400 @@ export default function RecipeDetailPage() {
   }
 
   return (
-    <div className={styles.container}>
-      {/* 版頭 Start */}
-      <div className={styles.heroSection}>
-        <div>
-          <h1>{recipe.title}</h1>
-          <p>{recipe.description}</p>
-        </div>
-        <img
-          src={recipe.image ? `${recipe.image}` : '讀取中...'}
-          alt="Recipe hero image"
-        />
-      </div>
-      {/* 版頭 End */}
-      <Bread
-        items={[
-          { text: '首頁', href: '/' },
-          { text: '食譜搜尋', href: '/recipes-landing' },
-          { text: '食譜列表', href: '/recipes-landing/list' },
-          { text: '食譜頁面' },
-        ]}
-      />
-
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-        <div>{`已有${favoriteCount}人收藏!!`}</div>
-        {isLoading && !favoritesLoaded ? (
-          <div className={styles.loading}>載入中...</div>
-        ) : (
-          <div style={{ backgroundColor: 'tomato', width: '100px' }}>
-            <FavoriteButton
-              recipeId={id}
-              initialFavorite={favorites[id]}
-              onFavoriteToggle={toggleFavorite}
-              className={styles.recipeFavoriteButton}
+    <>
+      <PageTransition>
+        <div className={styles.container}>
+          {/* 版頭 Start */}
+          <div className={styles.heroSection}>
+            <div>
+              <h1>{recipe.title}</h1>
+              <p>{recipe.description}</p>
+            </div>
+            <img
+              src={recipe.image ? `${recipe.image}` : '讀取中...'}
+              alt="Recipe hero image"
             />
           </div>
-        )}
+          {/* 版頭 End */}
 
-        <div>{`已有${like}人按讚!!`}</div>
-        {/* <div>{likeCount}</div> */}
-        {isLoading && !likesLoaded ? (
-          <div className={styles.loading}>載入中...</div>
-        ) : (
-          <button
-            onClick={() => toggleLike(id)}
-            className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
-          >
-            <BiLike size={24} />
-          </button>
-        )}
-      </div>
-      {/* <button
-        alt={isFavorite ? '已收藏' : '加入收藏'}
-        onClick={handleFavoriteClick}
-        style={{ cursor: 'pointer' }}
-      >
-        {isFavorite ? <BsBookmarkStarFill /> : <BsBookmarkPlus />}
-      </button> */}
+          <div className={styles.ingredientsSection}>
+            {/* 麵包屑 */}
+            <div className={styles.breadHotBox}>
+              <Bread
+                items={[
+                  { text: '首頁', href: '/' },
+                  { text: '食譜搜尋', href: '/recipes-landing' },
+                  { text: '食譜總覽', href: '/recipes-landing/list' },
+                  { text: '食譜教學' },
+                ]}
+              />
+              {/* 收藏按讚 */}
+              <div className={styles.hotBox}>
+                <div className={styles.favoriteBox}>
+                  <h3>{`${favoriteCount}人收藏`}</h3>
+                  <div className={styles.FavoriteButton}>
+                    <p>收藏</p>
+                    {isLoading && !favoritesLoaded ? (
+                      <div className={styles.loading}>載入中...</div>
+                    ) : (
+                      <FavoriteButton
+                        recipeId={id}
+                        initialFavorite={favorites[id]}
+                        onFavoriteToggle={toggleFavorite}
+                      />
+                    )}
+                  </div>
+                </div>
 
-      {/* 材料選單 Start */}
-      <div className={styles.ingredientsSection}>
-        <div className={styles.ingredientCard}>
-          <div className={styles.cardBody}>
-            <h2>食材</h2>
-            <div className={styles.cardList}>
-              {recipe.ingredients ? (
-                recipe.ingredients.map((ingredient, index) => (
-                  <React.Fragment key={index}>
-                    <div>
-                      {/* •{ingredient} */}• {ingredient.name}{' '}
-                      {ingredient.quantity} {ingredient.unit}
-                      {/* <button className={styles.cartIconBefore}>
+                <div className={styles.favoriteBox02}>
+                  {/* <h3>{`${like}人按讚`}</h3> */}
+                  <h3>{`${likeCount}人按讚!!`}</h3>
+                  <div className={styles.FavoriteButton}>
+                    <p>按讚</p>
+                    {isLoading && !likesLoaded ? (
+                      <div className={styles.loading}>載入中...</div>
+                    ) : (
+                      <button
+                        onClick={() => toggleLike(id)}
+                        className={`${styles.likeButton} ${isLiked ? styles.liked : ''}`}
+                      >
+                        {isLiked ? (
+                          <BiSolidLike size={24} />
+                        ) : (
+                          <BiLike size={24} />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* 材料選單 Start */}
+            <div className={styles.ingredientCardContainer}>
+              <div className={styles.ingredientCard}>
+                <div className={styles.cardBody}>
+                  <h2>食材</h2>
+                  <div className={styles.cardList}>
+                    {recipe.ingredients ? (
+                      recipe.ingredients.map((ingredient, index) => (
+                        <React.Fragment key={index}>
+                          <div>
+                            {/* •{ingredient} */}• {ingredient.name}{' '}
+                            {ingredient.quantity} {ingredient.unit}
+                            {/* <button className={styles.cartIconBefore}>
                         <IoIosAddCircle className={styles.cartIconAdd} />
                       </button> */}
-                      <button
-                        className={
-                          selectedItems[`condiment-${index}`]
-                            ? styles.cartIconAfter
-                            : styles.cartIconBefore
-                        }
-                        onClick={() => {
-                          setSelectedItems((prev) => ({
-                            ...prev,
-                            [`condiment-${index}`]: !prev[`condiment-${index}`],
-                          }))
-                        }}
-                      >
-                        {selectedItems[`condiment-${index}`] ? (
-                          <FaCartShopping className={styles.cartIcon} />
-                        ) : (
-                          <IoIosAddCircle className={styles.cartIconAdd} />
-                        )}
-                      </button>
-                    </div>
-                  </React.Fragment>
-                ))
-              ) : (
-                <>
-                  <li>
-                    短米 300 克 <IoIosAddCircle />
-                  </li>
+                            <button
+                              className={
+                                selectedItems[`condiment-${index}`]
+                                  ? styles.cartIconAfter
+                                  : styles.cartIconBefore
+                              }
+                              onClick={() => {
+                                setSelectedItems((prev) => ({
+                                  ...prev,
+                                  [`condiment-${index}`]:
+                                    !prev[`condiment-${index}`],
+                                }))
+                              }}
+                            >
+                              {selectedItems[`condiment-${index}`] ? (
+                                <FaCartShopping className={styles.cartIcon} />
+                              ) : (
+                                <IoIosAddCircle
+                                  className={styles.cartIconAdd}
+                                />
+                              )}
+                            </button>
+                          </div>
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <>
+                        <li>
+                          短米 300 克 <IoIosAddCircle />
+                        </li>
 
-                  <li>海鮮 500 克 (蝦、魷魚、貽貝)</li>
-                  <li>洋蔥 1 顆 (切碎)</li>
-                  <li>大蒜 3 瓣 (切碎)</li>
-                </>
-              )}
+                        <li>海鮮 500 克 (蝦、魷魚、貽貝)</li>
+                        <li>洋蔥 1 顆 (切碎)</li>
+                        <li>大蒜 3 瓣 (切碎)</li>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.cardIcon}>
+                  <TbBowlSpoon />
+                </div>
+              </div>
+              <div className={styles.ingredientCard}>
+                <div className={styles.cardBody}>
+                  <h2>調味料</h2>
+                  <div className={styles.cardList}>
+                    {recipe.ingredients ? (
+                      recipe.condiments.map((seasoning, index) => (
+                        <React.Fragment key={index}>
+                          <div>
+                            • {seasoning.name} {seasoning.quantity}{' '}
+                            {seasoning.unit}
+                            <button
+                              className={
+                                selectedSeasonings[`condiment-${index}`]
+                                  ? styles.cartIconAfter
+                                  : styles.cartIconBefore
+                              }
+                              onClick={() => {
+                                setSelectedSeasonings((prev) => ({
+                                  ...prev,
+                                  [`condiment-${index}`]:
+                                    !prev[`condiment-${index}`],
+                                }))
+                              }}
+                            >
+                              {selectedSeasonings[`condiment-${index}`] ? (
+                                <FaCartShopping className={styles.cartIcon} />
+                              ) : (
+                                <IoIosAddCircle
+                                  className={styles.cartIconAdd}
+                                />
+                              )}
+                            </button>
+                          </div>
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <>
+                        •魚高湯 600 毫升
+                        <br />
+                        •白酒 100 毫升 <br />
+                        •奶油 40 克<br />
+                        <span className={styles.seasoningHighlight}>
+                          •帕馬森起司 50克 (磨碎)
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  className={styles.cardCheck}
+                  onClick={handleConfirmCart}
+                >
+                  <h2>
+                    <TbHandFinger />
+                    &nbsp;確認
+                  </h2>
+                </button>
+
+                {/* 加入 SweetModal 組件 */}
+                <SweetModal
+                  show={showCartModal}
+                  onHide={() => setShowCartModal(false)}
+                  title="購物車訊息"
+                  message={cartModalMessage}
+                  icon="info"
+                />
+                {/* 加入 SweetModal 組件 (打勾的) */}
+                <SweetModal
+                  show={SuccessModal}
+                  onHide={() => setSuccessModal(false)}
+                  title="購物車訊息"
+                  message={cartModalMessage}
+                  icon="success"
+                />
+                <div className={styles.cardIcon}>
+                  <PiJarLabelBold />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className={styles.cardIcon}>
-            <TbBowlSpoon />
-          </div>
-        </div>
-        <div className={styles.ingredientCard}>
-          <div className={styles.cardBody}>
-            <h2>調味料</h2>
-            <div className={styles.cardList}>
-              {recipe.ingredients ? (
-                recipe.condiments.map((seasoning, index) => (
-                  <React.Fragment key={index}>
-                    <div>
-                      • {seasoning.name} {seasoning.quantity} {seasoning.unit}
-                      <button
+          {/* Steps Section - 動態生成步驟 */}
+          <div className={styles.stepsSection}>
+            <img src="/images/design/paper-top.svg" alt="Steps header" />
+            <div className={styles.stepsContainer}>
+              <div>
+                {isLoading ? (
+                  <div>正在載入步驟...</div>
+                ) : error ? (
+                  <div>載入步驟時發生錯誤</div>
+                ) : steps && steps.length > 0 ? (
+                  steps.map((step, index) => (
+                    <div className={styles.stepItem} key={index}>
+                      <div
                         className={
-                          selectedSeasonings[`condiment-${index}`]
-                            ? styles.cartIconAfter
-                            : styles.cartIconBefore
+                          index % 2 === 0
+                            ? styles.stepNumberDark
+                            : styles.stepNumberLight
                         }
-                        onClick={() => {
-                          setSelectedSeasonings((prev) => ({
-                            ...prev,
-                            [`condiment-${index}`]: !prev[`condiment-${index}`],
-                          }))
-                        }}
                       >
-                        {selectedSeasonings[`condiment-${index}`] ? (
-                          <FaCartShopping className={styles.cartIcon} />
-                        ) : (
-                          <IoIosAddCircle className={styles.cartIconAdd} />
-                        )}
-                      </button>
+                        <div className={styles.stepNumberText}>
+                          <h3>步</h3>
+                          <h3>驟</h3>
+                        </div>
+                        <h3 className={styles.stepNumberValue}>{index + 1}</h3>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        {step.description || step}。
+                      </div>
                     </div>
-                  </React.Fragment>
-                ))
-              ) : (
-                <>
-                  •魚高湯 600 毫升
-                  <br />
-                  •白酒 100 毫升 <br />
-                  •奶油 40 克<br />
-                  <span className={styles.seasoningHighlight}>
-                    •帕馬森起司 50克 (磨碎)
-                  </span>
-                </>
-              )}
+                  ))
+                ) : (
+                  // 備用的靜態步驟，當API沒有返回步驟時顯示
+                  <>
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberDark}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>1</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        蘑菇和洋蔥切碎，準備好所有材料。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberLight}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>2</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        在鍋中融化奶油，加入洋蔥炒至透明。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberDark}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>3</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        加入蘑菇繼續炒至水分蒸發，香氣四溢。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberLight}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>4</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        撒入麵粉炒至無粉味。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberDark}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>5</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        慢慢加入雞高湯，不斷攪拌至湯變得濃稠。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberLight}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>6</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        小火煮15分鐘後加入鮮奶油。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberDark}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>7</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        用攪拌機打成細滑濃湯，最後加入松露油調味。
+                      </div>
+                    </div>
+
+                    <div className={styles.stepItem}>
+                      <div className={styles.stepNumberLight}>
+                        <div className={styles.stepNumberText}>
+                          <div>步</div>
+                          <div>驟</div>
+                        </div>
+                        <div className={styles.stepNumberValue}>8</div>
+                      </div>
+                      <div className={styles.stepDescription}>
+                        上桌前在每碗湯上放上切片松露裝飾。
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-          <button className={styles.cardCheck} onClick={handleConfirmCart}>
-            <h2>
-              <TbHandFinger />
-              &nbsp;確認
-            </h2>
-          </button>
 
-          {/* 加入 SweetModal 組件 */}
-          <SweetModal
-            show={showCartModal}
-            onHide={() => setShowCartModal(false)}
-            title="購物車訊息"
-            message={cartModalMessage}
-            icon="info"
-          />
-          {/* 加入 SweetModal 組件 (打勾的) */}
-          <SweetModal
-            show={SuccessModal}
-            onHide={() => setShowCartModal(false)}
-            title="購物車訊息"
-            message={cartModalMessage}
-            icon="success"
-          />
-          <div className={styles.cardIcon}>
-            <PiJarLabelBold />
+          {/* 美食笑尖兵 */}
+          <div className={styles.chefContainer}>
+            <div className={styles.chefCard}>
+              <img src="/images/recipes-img/chef.webp" alt="美食笑尖兵" />
+              <div className={styles.chefText}>
+                <h2>🦸美食笑尖兵</h2>
+
+                <p>
+                  歡迎來到<b> FOOD ┃今仔日食飽未 </b>的美味世界！🎉🎉🎉
+                </p>
+                <p>
+                  我們是一群由熱愛料理的夥伴組成的團隊，以「笑」為調味，用創意烹製各式各樣的美食饗宴。
+                  <b>
+                    我們的目標很簡單：透過輕鬆有趣的方式，分享多元豐富的料理內容
+                  </b>
+                  ，讓每一位熱愛生活、享受美食的朋友，都能在這裡找到屬於自己的味蕾驚喜。
+                </p>
+                <p>
+                  <b>🦸美食笑尖兵</b>
+                  的特色在於對異國料理的熱情探索、對充滿人情味的手尾菜的溫暖傳承，以及對精緻甜點的甜蜜創造。我們相信，料理不只是滿足口腹之慾，更是一種文化交流、情感連結和療癒心靈的方式。
+                </p>
+                <p>
+                  🔥🔥🔥<b>趕快加入我們的行列，讓每一餐都充滿驚喜與歡樂吧！</b>
+                  🔥🔥🔥
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      {/* 材料選單 End */}
 
-      {/* Steps Section - 動態生成步驟 */}
-      <div className={styles.stepsSection}>
-        <img src="/images/design/paper-top.svg" alt="Steps header" />
-        <div className={styles.stepsContainer}>
-          <div>
-            {isLoading ? (
-              <div>正在載入步驟...</div>
-            ) : error ? (
-              <div>載入步驟時發生錯誤</div>
-            ) : steps && steps.length > 0 ? (
-              steps.map((step, index) => (
-                <div className={styles.stepItem} key={index}>
-                  <div
-                    className={
-                      index % 2 === 0
-                        ? styles.stepNumberDark
-                        : styles.stepNumberLight
-                    }
-                  >
-                    <div className={styles.stepNumberText}>
-                      <h3>步</h3>
-                      <h3>驟</h3>
-                    </div>
-                    <h3 className={styles.stepNumberValue}>{index + 1}</h3>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    {step.description || step}。
-                  </div>
-                </div>
-              ))
-            ) : (
-              // 備用的靜態步驟，當API沒有返回步驟時顯示
-              <>
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberDark}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>1</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    蘑菇和洋蔥切碎，準備好所有材料。
-                  </div>
-                </div>
+          {/* user_feedbacks - 動態生成評論 */}
+          <div className={styles.commentsSection}>
+            <div className={styles.commentsContainer}>
+              <Button
+                variant="primary"
+                onClick={handleShowFeedbackModal}
+                className={styles.addCommentButton}
+              >
+                <h2>添加留言</h2>
+              </Button>
 
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberLight}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>2</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    在鍋中融化奶油，加入洋蔥炒至透明。
-                  </div>
-                </div>
-
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberDark}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>3</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    加入蘑菇繼續炒至水分蒸發，香氣四溢。
-                  </div>
-                </div>
-
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberLight}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>4</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    撒入麵粉炒至無粉味。
-                  </div>
-                </div>
-
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberDark}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>5</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    慢慢加入雞高湯，不斷攪拌至湯變得濃稠。
-                  </div>
-                </div>
-
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberLight}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>6</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    小火煮15分鐘後加入鮮奶油。
-                  </div>
-                </div>
-
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberDark}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>7</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    用攪拌機打成細滑濃湯，最後加入松露油調味。
-                  </div>
-                </div>
-
-                <div className={styles.stepItem}>
-                  <div className={styles.stepNumberLight}>
-                    <div className={styles.stepNumberText}>
-                      <div>步</div>
-                      <div>驟</div>
-                    </div>
-                    <div className={styles.stepNumberValue}>8</div>
-                  </div>
-                  <div className={styles.stepDescription}>
-                    上桌前在每碗湯上放上切片松露裝飾。
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 美食笑尖兵 */}
-      <div className={styles.chefContainer}>
-        <div className={styles.chefCard}>
-          <img src="/images/recipes-img/chef.webp" alt="美食笑尖兵" />
-          <div className={styles.chefText}>
-            <h2>🦸美食笑尖兵</h2>
-
-            <p>
-              歡迎來到<b> FOOD ┃今仔日食飽未 </b>的美味世界！🎉🎉🎉
-            </p>
-            <p>
-              我們是一群由熱愛料理的夥伴組成的團隊，以「笑」為調味，用創意烹製各式各樣的美食饗宴。
-              <b>
-                我們的目標很簡單：透過輕鬆有趣的方式，分享多元豐富的料理內容
-              </b>
-              ，讓每一位熱愛生活、享受美食的朋友，都能在這裡找到屬於自己的味蕾驚喜。
-            </p>
-            <p>
-              <b>🦸美食笑尖兵</b>
-              的特色在於對異國料理的熱情探索、對充滿人情味的手尾菜的溫暖傳承，以及對精緻甜點的甜蜜創造。我們相信，料理不只是滿足口腹之慾，更是一種文化交流、情感連結和療癒心靈的方式。
-            </p>
-            <p>
-              🔥🔥🔥<b>趕快加入我們的行列，讓每一餐都充滿驚喜與歡樂吧！</b>
-              🔥🔥🔥
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* user_feedbacks - 動態生成評論 */}
-      <div className={styles.commentsSection}>
-        <div className={styles.commentsContainer}>
-          <Button
-            variant="primary"
-            onClick={handleShowFeedbackModal}
-            className={styles.addCommentButton}
-          >
-            <h2>添加留言</h2>
-          </Button>
-
-          {/* 5. React Bootstrap Modal  這裡是食譜評論的彈出視窗
+              {/* 5. React Bootstrap Modal  這裡是食譜評論的彈出視窗
         。然後可以在SCSS當中自訂CSS樣式 。目前應該需調整*/}
 
-          {/* 登入提示 Modal */}
-          {/* <Modal
+              {/* 登入提示 Modal */}
+              {/* <Modal
             show={showLoginModal}
             onHide={handleCloseLoginModal}
             centered
@@ -914,72 +937,76 @@ export default function RecipeDetailPage() {
               </Button>
             </Modal.Footer>
           </Modal> */}
-          {/* 新的登入提示 */}
-          <LoginModal
-            show={showLoginModal}
-            onHide={() => setShowLoginModal(false)}
-            message={cartModalMessage}
-            onNavigateToLogin={() => {
-              setShowLoginModal(false)
-              router.push('/login')
-            }}
-          />
+              {/* 新的登入提示 */}
+              <LoginModal
+                show={showLoginModal}
+                onHide={() => setShowLoginModal(false)}
+                message={cartModalMessage}
+                onNavigateToLogin={() => {
+                  setShowLoginModal(false)
+                  router.push('/login')
+                }}
+              />
 
-          <div>
-            {/* 左箭頭按鈕 */}
+              <div>
+                {/* 左箭頭按鈕 */}
 
-            <div className={styles.commentsList01}>
-              {/* 左箭頭按鈕 */}
-              <button
-                onClick={handlePrevPage}
-                // 第一頁禁用：disabled={currentPage === 0}
-                disabled={currentPage === 0}
-              >
-                <IoIosArrowBack />
-              </button>
-              <div className={styles.commentsList}>
-                {isLoading ? (
-                  <div>正在載入評論...</div>
-                ) : error ? (
-                  <div>載入評論時發生錯誤</div>
-                ) : currentComments && currentComments.length > 0 ? (
-                  currentComments.map((comment, index) => (
-                    <div className={styles.commentCard} key={index}>
-                      <div>
-                        <img
-                          src={comment.userAvatar || `/images/user/default.jpg`}
-                          alt="User avatar"
-                          onError={(e) => {
-                            if (!e.target.dataset.fallback) {
-                              e.target.dataset.fallback = true // 標記已經使用過 fallback
-                              e.target.src = `/images/recipes/user${(index % 2) + 1}.png`
-                            }
-                          }}
-                        />
-                        <div className={styles.userInfo}>
-                          <button className={styles.buttonBiLike01}>
+                <div className={styles.commentsList01}>
+                  {/* 左箭頭按鈕 */}
+                  <button
+                    onClick={handlePrevPage}
+                    // 第一頁禁用：disabled={currentPage === 0}
+                    disabled={currentPage === 0}
+                  >
+                    <IoIosArrowBack />
+                  </button>
+                  <div className={styles.commentsList}>
+                    {isLoading ? (
+                      <div>正在載入評論...</div>
+                    ) : error ? (
+                      <div>載入評論時發生錯誤</div>
+                    ) : currentComments && currentComments.length > 0 ? (
+                      currentComments.map((comment, index) => (
+                        <div className={styles.commentCard} key={index}>
+                          <div>
+                            <img
+                              src={
+                                comment.userAvatar || `/images/user/default.jpg`
+                              }
+                              alt="User avatar"
+                              onError={(e) => {
+                                if (!e.target.dataset.fallback) {
+                                  e.target.dataset.fallback = true // 標記已經使用過 fallback
+                                  e.target.src = `/images/recipes/user${(index % 2) + 1}.png`
+                                }
+                              }}
+                            />
+                            <div className={styles.userInfo}>
+                              {/* <button className={styles.buttonBiLike01}>
                             <BiLike />
-                          </button>
-                          {/* <button className={styles.buttonBiLike02}>
+                          </button> */}
+                              {/* <button className={styles.buttonBiLike02}>
                           <BiLike />
                         </button> */}
-                          <h3>{comment.username || '匿名用戶'}</h3>
-                          <p>{comment.created_at || '未知日期'}</p>
+                              <h3>{comment.username || '匿名用戶'}</h3>
+                              <p>{comment.created_at || '未知日期'}</p>
+                            </div>
+                          </div>
+                          <div className={styles.commentContent}>
+                            <h2>{comment.title || '無標題'}</h2>
+                            <p>
+                              {comment.context || comment.text || '無評論內容'}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className={styles.commentContent}>
-                        <h2>{comment.title || '無標題'}</h2>
-                        <p>{comment.context || comment.text || '無評論內容'}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  // 備用的靜態評論，當API沒有返回評論時顯示
-                  <>
-                    <div className={styles.commentCard}>
-                      <div>
-                        {/* 因為這一塊是假設沒人留言的情況下，所以先註解掉 */}
-                        {/* <img
+                      ))
+                    ) : (
+                      // 備用的靜態評論，當API沒有返回評論時顯示
+                      <>
+                        <div className={styles.commentCard}>
+                          <div>
+                            {/* 因為這一塊是假設沒人留言的情況下，所以先註解掉 */}
+                            {/* <img
                     src={`/images/user/default.jpg`}
                     className={styles.userAvatar}
                     alt="User avatar"
@@ -990,173 +1017,179 @@ export default function RecipeDetailPage() {
                       }
                     }}
                   /> */}
-                        <div className={styles.userInfo}>
-                          <div>
-                            <div>
-                              <h2>{'目前這個食譜尚未有人留言'}</h2>
+                            <div className={styles.userInfo}>
+                              <div>
+                                <div>
+                                  <h2>{'目前這個食譜尚未有人留言'}</h2>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={styles.commentContent}>
+                            <div className={styles.commentText}>
+                              {'目前這個食譜尚未有人留言'}
                             </div>
                           </div>
                         </div>
+                      </>
+                    )}
+                  </div>
+                  {/* 右箭頭按鈕 */}
+                  <button
+                    className={styles.arrowButton}
+                    onClick={handleNextPage}
+                    disabled={endIndex >= comments.length} // 最後一頁禁用
+                  >
+                    <IoIosArrowForward />
+                  </button>
+                  {/* 這邊是原本預計要放的右箭頭，也先註解掉用別的替代 */}
+                  {/* <img
+            src="/images/recipes/user-avatar-right.png"
+            className={styles.userAvatarRight}
+            alt="User avatar"
+          /> */}
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* FoodFeeBack 區塊 */}
+          {/* {isFeedbackVisible && <FoodFeeBack />} */}
+
+          {/* Related Recipes Section - 動態生成相關食譜 */}
+          <div className={styles.relatedRecipesSection}>
+            <div>
+              <h2>你可能會喜歡</h2>
+              <div className={styles.relatedRecipesGrid}>
+                {isLoading ? (
+                  <h3>正在載入相關食譜...</h3>
+                ) : error ? (
+                  <h3>載入相關食譜時發生錯誤</h3>
+                ) : relatedRecipes && relatedRecipes.length > 0 ? (
+                  relatedRecipes.map((relatedRecipe, index) => (
+                    <Link
+                      href={`/recipes/${relatedRecipe.related_recipe_id}`}
+                      key={relatedRecipe.related_recipe_id || index}
+                      className={styles.relatedRecipeCard}
+                    >
+                      {/* img先註解掉，不然會一直無限跟後端發API請求 */}
+                      <div className={styles.relatedRecipeImage}>
+                        <img
+                          src={
+                            relatedRecipe.image ||
+                            `/images/recipes/related${(index % 6) + 1}.jpg`
+                          }
+                          alt={relatedRecipe.title || '相關食譜'}
+                          onError={(e) => {
+                            if (!e.target.dataset.fallback) {
+                              e.target.dataset.fallback = true // 標記已經使用過 fallback
+                              e.target.src = `/images/recipes/related${(index % 6) + 1}.jpg`
+                            }
+                          }}
+                        />
                       </div>
-                      <div className={styles.commentContent}>
-                        <div className={styles.commentText}>
-                          {'目前這個食譜尚未有人留言'}
-                        </div>
+                      <h2>{relatedRecipe.title || '未命名食譜'}</h2>
+                    </Link>
+                  ))
+                ) : (
+                  // 備用的靜態相關食譜，當API沒有返回數據時顯示
+                  <>
+                    <div className={styles.relatedRecipeCard}>
+                      <img
+                        src="/images/recipes/related1.jpg"
+                        className={styles.relatedRecipeImage}
+                        alt="Related recipe"
+                      />
+                      <div className={styles.relatedRecipeTitle}>希臘沙拉</div>
+                    </div>
+
+                    <div className={styles.relatedRecipeCard}>
+                      <img
+                        src="/images/recipes/related2.jpg"
+                        className={styles.relatedRecipeImage}
+                        alt="Related recipe"
+                      />
+                      <div className={styles.relatedRecipeTitle}>
+                        墨西哥玉沙拉米餅
+                      </div>
+                    </div>
+
+                    <div className={styles.relatedRecipeCard}>
+                      <img
+                        src="/images/recipes/related3.jpg"
+                        className={styles.relatedRecipeImage}
+                        alt="Related recipe"
+                      />
+                      <div className={styles.relatedRecipeTitle}>
+                        義式焗烤千層麵
+                      </div>
+                    </div>
+
+                    <div className={styles.relatedRecipeCard}>
+                      <img
+                        src="/images/recipes/related4.jpg"
+                        className={styles.relatedRecipeImage}
+                        alt="Related recipe"
+                      />
+                      <div className={styles.relatedRecipeTitle}>
+                        巧克力熔岩蛋糕
+                      </div>
+                    </div>
+
+                    <div className={styles.relatedRecipeCard}>
+                      <img
+                        src="/images/recipes/related5.jpg"
+                        className={styles.relatedRecipeImage}
+                        alt="Related recipe"
+                      />
+                      <div className={styles.relatedRecipeTitle}>
+                        台式滷肉飯
+                      </div>
+                    </div>
+
+                    <div className={styles.relatedRecipeCard}>
+                      <img
+                        src="/images/recipes/related6.jpg"
+                        className={styles.relatedRecipeImage}
+                        alt="Related recipe"
+                      />
+                      <div className={styles.relatedRecipeTitle}>
+                        泰式綠咖哩雞
                       </div>
                     </div>
                   </>
                 )}
               </div>
-              {/* 右箭頭按鈕 */}
-              <button
-                className={styles.arrowButton}
-                onClick={handleNextPage}
-                disabled={endIndex >= comments.length} // 最後一頁禁用
-              >
-                <IoIosArrowForward />
-              </button>
-              {/* 這邊是原本預計要放的右箭頭，也先註解掉用別的替代 */}
-              {/* <img
-            src="/images/recipes/user-avatar-right.png"
-            className={styles.userAvatarRight}
-            alt="User avatar"
-          /> */}
             </div>
           </div>
-        </div>
-      </div>
-      {/* FoodFeeBack 區塊 */}
-      {/* {isFeedbackVisible && <FoodFeeBack />} */}
-
-      {/* Related Recipes Section - 動態生成相關食譜 */}
-      <div className={styles.relatedRecipesSection}>
-        <div>
-          <h2>你可能會喜歡</h2>
-          <div className={styles.relatedRecipesGrid}>
-            {isLoading ? (
-              <h3>正在載入相關食譜...</h3>
-            ) : error ? (
-              <h3>載入相關食譜時發生錯誤</h3>
-            ) : relatedRecipes && relatedRecipes.length > 0 ? (
-              relatedRecipes.map((relatedRecipe, index) => (
-                <Link
-                  href={`/recipes/${relatedRecipe.related_recipe_id}`}
-                  key={relatedRecipe.related_recipe_id || index}
-                  className={styles.relatedRecipeCard}
-                >
-                  {/* img先註解掉，不然會一直無限跟後端發API請求 */}
-                  <div className={styles.relatedRecipeImage}>
-                    <img
-                      src={
-                        relatedRecipe.image ||
-                        `/images/recipes/related${(index % 6) + 1}.jpg`
-                      }
-                      alt={relatedRecipe.title || '相關食譜'}
-                      onError={(e) => {
-                        if (!e.target.dataset.fallback) {
-                          e.target.dataset.fallback = true // 標記已經使用過 fallback
-                          e.target.src = `/images/recipes/related${(index % 6) + 1}.jpg`
-                        }
-                      }}
-                    />
-                  </div>
-                  <h2>{relatedRecipe.title || '未命名食譜'}</h2>
-                </Link>
-              ))
-            ) : (
-              // 備用的靜態相關食譜，當API沒有返回數據時顯示
-              <>
-                <div className={styles.relatedRecipeCard}>
-                  <img
-                    src="/images/recipes/related1.jpg"
-                    className={styles.relatedRecipeImage}
-                    alt="Related recipe"
-                  />
-                  <div className={styles.relatedRecipeTitle}>希臘沙拉</div>
-                </div>
-
-                <div className={styles.relatedRecipeCard}>
-                  <img
-                    src="/images/recipes/related2.jpg"
-                    className={styles.relatedRecipeImage}
-                    alt="Related recipe"
-                  />
-                  <div className={styles.relatedRecipeTitle}>
-                    墨西哥玉沙拉米餅
-                  </div>
-                </div>
-
-                <div className={styles.relatedRecipeCard}>
-                  <img
-                    src="/images/recipes/related3.jpg"
-                    className={styles.relatedRecipeImage}
-                    alt="Related recipe"
-                  />
-                  <div className={styles.relatedRecipeTitle}>
-                    義式焗烤千層麵
-                  </div>
-                </div>
-
-                <div className={styles.relatedRecipeCard}>
-                  <img
-                    src="/images/recipes/related4.jpg"
-                    className={styles.relatedRecipeImage}
-                    alt="Related recipe"
-                  />
-                  <div className={styles.relatedRecipeTitle}>
-                    巧克力熔岩蛋糕
-                  </div>
-                </div>
-
-                <div className={styles.relatedRecipeCard}>
-                  <img
-                    src="/images/recipes/related5.jpg"
-                    className={styles.relatedRecipeImage}
-                    alt="Related recipe"
-                  />
-                  <div className={styles.relatedRecipeTitle}>台式滷肉飯</div>
-                </div>
-
-                <div className={styles.relatedRecipeCard}>
-                  <img
-                    src="/images/recipes/related6.jpg"
-                    className={styles.relatedRecipeImage}
-                    alt="Related recipe"
-                  />
-                  <div className={styles.relatedRecipeTitle}>泰式綠咖哩雞</div>
-                </div>
-              </>
-            )}
+          {/* sticker */}
+          <div className={styles.sticker}>
+            <LazyLoadImage
+              src="/images/design/sticker-1.svg"
+              delayTime={300}
+              className={styles.sticker1}
+              alt="蔬菜"
+            />
+            <LazyLoadImage
+              src="/images/design/sticker-2.svg"
+              delayTime={300}
+              className={styles.sticker2}
+              alt="橄欖油"
+            />
+            <LazyLoadImage
+              src="/images/design/sticker-3.svg"
+              delayTime={300}
+              className={styles.sticker3}
+              alt="調味罐"
+            />
+            <LazyLoadImage
+              src="/images/design/sticker-5.svg"
+              delayTime={300}
+              className={styles.sticker5}
+              alt="砧板"
+            />
           </div>
         </div>
-      </div>
-      {/* sticker */}
-      <div className={styles.sticker}>
-        <LazyLoadImage
-          src="/images/design/sticker-1.svg"
-          delayTime={300}
-          className={styles.sticker1}
-          alt="蔬菜"
-        />
-        <LazyLoadImage
-          src="/images/design/sticker-2.svg"
-          delayTime={300}
-          className={styles.sticker2}
-          alt="橄欖油"
-        />
-        <LazyLoadImage
-          src="/images/design/sticker-3.svg"
-          delayTime={300}
-          className={styles.sticker3}
-          alt="調味罐"
-        />
-        <LazyLoadImage
-          src="/images/design/sticker-5.svg"
-          delayTime={300}
-          className={styles.sticker5}
-          alt="砧板"
-        />
-      </div>
-    </div>
+      </PageTransition>
+    </>
   )
 }
