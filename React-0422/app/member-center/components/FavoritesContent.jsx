@@ -48,27 +48,29 @@ const FavoritesContent = () => {
         {/* 根據activeTab顯示對應的內容。ingredient：食材收藏、recipe：食譜收藏 */}
         {activeTab === 'ingredient' ? (
           <div className={styles.list}>
-            <div className={styles.tableHeader}>
-              <div className={styles.headerCell}>圖片</div>
-              <div className={styles.headerCell}>品名</div>
-              <div className={styles.headerCell}>品牌</div>
-              <div className={styles.headerCell}>價格</div>
-              <div className={styles.headerCell}>收藏</div>
-              <div className={styles.headerCell}></div>
-            </div>
+            <ul className={styles.listHeader}>
+              <li className={styles.headerItem}></li>
+              <li className={styles.headerItem}>品名</li>
+              <li className={styles.headerItem}>品牌</li>
+              <li className={styles.headerItem}>價格</li>
+              <li className={styles.headerItem}>收藏時間</li>
+              <li className={styles.headerItem}></li>
+            </ul>
 
-            <div className={styles.tableRow}>
-              <div className={styles.imageCell}>
-                <div className={styles.productImage}></div>
-              </div>
-              <div className={styles.dataCell}>name</div>
-              <div className={styles.dataCell}>Marvin</div>
-              <div className={styles.dataCell}>$4,231.01</div>
-              <div className={styles.dataCell}>26/04/2020</div>
-              <div className={styles.actionCell}>
-                <button className={styles.unfavoriteBtn}>取消收藏</button>
-              </div>
-            </div>
+            <ul className={styles.listContent}>
+              <li className={styles.listItem}>
+                <div className={styles.imageWrapper}>
+                  <div className={styles.productImage}></div>
+                </div>
+                <div className={styles.itemInfo}>name</div>
+                <div className={styles.itemInfo}>Marvin</div>
+                <div className={styles.itemInfo}>$4,231.01</div>
+                <div className={styles.itemInfo}>26/04/2020</div>
+                <div className={styles.actionWrapper}>
+                  <button className={styles.unfavoriteBtn}>取消收藏</button>
+                </div>
+              </li>
+            </ul>
           </div>
         ) : (
           <div className={styles.list}>

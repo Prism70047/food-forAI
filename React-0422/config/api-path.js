@@ -1,6 +1,6 @@
 // API 路徑指定為環境變數
-// 請在 .env 檔案中設定 NEXT_PUBLIC_API_URL=http://localhost:3001
-export const API_SERVER = process.env.NEXT_PUBLIC_API_URL
+// 請在 .env 檔案中設定 NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
+export const API_SERVER = process.env.NEXT_PUBLIC_BACKEND_URL
 
 // 連到餐廳詳細頁
 export const FOOD_RESTAURANT = `${API_SERVER}/restaurants/api`
